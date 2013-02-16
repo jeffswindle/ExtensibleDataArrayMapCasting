@@ -125,14 +125,29 @@ public class BpTree <K extends Comparable <K>, V>
     /***************************************************************************
      * Return the first (smallest) key in the B+Tree map.
      * @return  the first key in the B+Tree map.
+     * @author Stephen Lago
      */
     public K firstKey () 
     {
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
-
-        return null;
+           //check to see if the root is a leaf node
+    	if(root.isLeaf)
+    	{
+    		//if it is, simply return the first key in the root
+    		return(root.key[0]);
+    	//if the root is not a leaf
+    	}else
+    	{
+    		//start at the root
+    		Node current = root;
+    		//while the current node is not a leaf
+    		while(!(current.isLeaf))
+    		{
+    			//move down to the leftmost child of the current node
+    			current = (Node) current.ref[0];
+    		}
+    		//return the first key in the (now leaf) node
+    		return(current.key[0]);
+    	}
     } // firstKey
 
     /***************************************************************************
