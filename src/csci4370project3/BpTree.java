@@ -128,10 +128,15 @@ public class BpTree <K extends Comparable <K>, V>
      */
     public K firstKey () 
     {
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
-
+           //check to see if the root is a leaf node
+    	if(root.isLeaf)
+    	{
+    		//if it is, simply return the first key in the root
+    		return(root.key[0]);
+    	}else
+    	{
+    		
+    	}
         return null;
     } // firstKey
 
