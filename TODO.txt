@@ -1,0 +1,16 @@
+Methods to be implemented - Estimated Difficulty (1 = easiest, 5 = most difficult)
+BpTree.java:
+	entrySet() 	-	3	-	Woong
+	firstKey() 	-	1	-	Stephen	
+	lastKey() 	-	1	-	Jeff
+	headMap()	-	3	-	Stephen
+	tailMap()	-	3	-	Stephen
+	subMap()	-	3	-	Stephen
+	size()		-	1	-	Woong
+	insert()	-	4	-	Nick
+	split()		-	3	-	Nick
+LinHash:
+	entrySet()	-	2	-	Jeff
+	get()		-	2	-	Stephen
+	put()		-	2	-	Nick	
+	print()		-	2	-	Jeff
