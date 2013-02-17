@@ -166,16 +166,41 @@ public class BpTree <K extends Comparable <K>, V>
     /***************************************************************************
      * Return the portion of the B+Tree map where key < toKey.
      * @return  the submap with keys in the range [firstKey, toKey)
+     * @author Stephen Lago
      */
     public SortedMap <K,V> headMap (K toKey)
     {
            BpTree result = new BpTree(classK,classV);
-           //if tokey is less than the firstKey 
-    	if(toKey.compareTo(this.firstKey())<0)
+    	//if tokey is less than or equal to the firstKey 
+    	if((toKey.compareTo(this.firstKey())<0) || (toKey.compareTo(this.firstKey())==0))
     	{
     		//return null, there are no values to return
     		return(null);
     	}
+    	//if the root is a leaf node
+    	if(this.root.isLeaf)
+    	{
+    		int i = 0;
+    		//go through all the keys of the root
+    		while(i<root.nKeys)
+    		{
+    			//if the key is less than toKey
+    			if(root.key[i].compareTo(toKey)<0)
+    			{
+    				//add the pair to the result tree
+    				result.put(root.key[i],root.ref[i]);
+    			//if the key is greater than or equal to toKey, there are no more keys to add
+    			}else
+    			{
+    				//exit the loop
+    				break;
+    			}
+    			//increment
+    			i++;
+    		}
+    	}
+    	//if the root is not a leaf node
+    	
     	return result;
     } // headMap
 
@@ -346,6 +371,17 @@ public class BpTree <K extends Comparable <K>, V>
         } // for
         out.println ("-------------------------------------------");
         out.println ("Average number of nodes accessed = " + bpt.count / (double) totKeys);
+        
+        out.println("--------------------------------------------");
+        out.println("Testing for Submap methods: ");
+        out.println("bpt.headMap(7) : ");
+        BpTree <Integer, Integer> bpt2 = (BpTree<Integer, Integer>) bpt.headMap(7);
+        bpt2.print (bpt2.root, 0);
+        out.println("\n\nbpt.tailMap(5) : ");
+        BpTree <Integer, Integer> bpt3 = (BpTree<Integer, Integer>) bpt.tailMap(5);
+        bpt3.print (bpt3.root, 0);
+        out.println("\n\nbpt.subMap(3,11) : ");
+        BpTree <Integer, Integer> bpt4 = (BpTree<Integer, Integer>) bpt.subMap(3,11);
     } // main
 
 } // BpTree class
