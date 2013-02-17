@@ -169,11 +169,14 @@ public class BpTree <K extends Comparable <K>, V>
      */
     public SortedMap <K,V> headMap (K toKey)
     {
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
-
-        return null;
+           BpTree result = new BpTree(classK,classV);
+           //if tokey is less than the firstKey 
+    	if(toKey.compareTo(this.firstKey())<0)
+    	{
+    		//return null, there are no values to return
+    		return(null);
+    	}
+    	return result;
     } // headMap
 
     /***************************************************************************
