@@ -170,7 +170,7 @@ public class BpTree <K extends Comparable <K>, V>
      */
     public SortedMap <K,V> headMap (K toKey)
     {
-           BpTree result = new BpTree(classK,classV);
+           BpTree<K, V> result = new BpTree<K, V>(classK,classV);
     	//if tokey is less than or equal to the firstKey 
     	if((toKey.compareTo(this.firstKey())<0) || (toKey.compareTo(this.firstKey())==0))
     	{
@@ -188,7 +188,7 @@ public class BpTree <K extends Comparable <K>, V>
     			if(root.key[i].compareTo(toKey)<0)
     			{
     				//add the pair to the result tree
-    				result.put(root.key[i],root.ref[i]);
+    				result.put(root.key[i],(V) root.ref[i]);
     			//if the key is greater than or equal to toKey, there are no more keys to add
     			}else
     			{
@@ -200,6 +200,49 @@ public class BpTree <K extends Comparable <K>, V>
     		}
     	}
     	//if the root is not a leaf node
+    	//find the depth of the tree
+    	int depth = 0;
+    	Node currentNode = root;
+    	while(!currentNode.isLeaf)
+    	{
+    		depth++;
+    		currentNode = (Node) currentNode.ref[0];
+    	}
+out.println("DEBUG:: headMap: depth is " + depth);
+    	//begin at the root
+		currentNode = root;
+		//start at the root level
+    	int currentLevel = 0;
+    	//an array to store the current index of each level (avoiding recursion here)
+    	int[] holder = new int[depth];
+    	ArrayList<Node> nodeHolder = new ArrayList<Node>();
+    	//initialize the array to an array of 0's
+    	for(int i=0;i<depth;i++){holder[i] = 0;}
+    	//starting key is root's leftmost key
+    	K currentK = root.key[0];
+    	//continue through the tree in order, until a larger key is found
+    	while(currentK.compareTo(toKey)<0)
+    	{
+    		//if we are looking at a leaf node
+    		if(currentLevel==depth)
+    		{
+    			//put the current node into the result tree 
+    			result.put(currentNode.key[holder[currentLevel]],(V) currentNode.ref[holder[currentLevel]]);
+    			//move to the next key in the node
+    			holder[currentLevel]++;
+    			//if we are done with the node, we must move up one and increment
+    			if(holder[currentLevel]>=currentNode.nKeys)
+    			{
+    				holder[currentLevel] = 0;
+    				currentLevel--;
+    				currentNode = nodeHolder.get(currentLevel);
+    			}
+    		//if we are looking at an internal node
+    		}else
+    		{
+    			
+    		}
+    	}
     	
     	return result;
     } // headMap
