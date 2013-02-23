@@ -71,7 +71,7 @@ public class LinHash <K, V>
      */
     private int split = 0;
 	
-	/**
+     /**
      * The number of items inserted into the hash table
      */
     private int insertCount = 0;
@@ -108,7 +108,7 @@ public class LinHash <K, V>
             }//for
             
         }//for
-        
+
         //Put the map into a set for return value
         Set <Map.Entry <K, V>> enSet = mp.entrySet();
             
@@ -141,7 +141,7 @@ public class LinHash <K, V>
             //While position is less than the number of positions for a bit length
             //For example if numOfBits is 2 position will iterate 4 times( 00,01,10,11 )
             //If numOfBits is 3 is will iterate 8 times ( 000,001,010,011,100,101,110,111 )
-            while( position / Math.pow(2, numOfBits) < 1 ){
+            while( ( position / Math.pow(2, numOfBits) < 1 ) && ( position < lastBucketPosition ) ){
 
                 //If your bit string for the key to find is not at least the number
                 //of bits, prepend 0's until you reach the numOfBits. This 
@@ -167,7 +167,10 @@ public class LinHash <K, V>
                     }
                     rowString = prepend + rowString;
                 }
-                           
+                    
+                System.out.println(bin.substring(bin.length()-numOfBits));
+                System.out.println(rowString.substring(rowString.length()-numOfBits ));
+                
                 //Generate substrings from the key and position based on the numOfBits
                 //value and compare them
                 if( bin.substring(bin.length()-numOfBits).equals( rowString.substring(rowString.length()-numOfBits ) ) ){
@@ -214,79 +217,90 @@ public class LinHash <K, V>
             this.hTable.add(new LinHash.Bucket());
         }
         
+        //Hash the key
         int keyInt = h (key);
-        int compareSize = 1;
-        int counter = 0;
-        while( compareSize > 0 ){
-            compareSize = hTable.size() / (int) Math.pow( 2, counter);
-            System.out.println("compareSize: " + compareSize);
-            counter++;
-            System.out.println("counter: " + counter);
-        }
-        int compared = hTable.size();
         
-        //Convert key hash to bit string
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(keyInt);
+        //Convert the hash to a string of bits
         String bin = Integer.toBinaryString(keyInt);
-
-        System.out.println(bin);
         
-        while( counter > 0 ){
+        //Value to maintain position in the hash table
+        int position = 0;
+        //Number of current bits to compare
+        int numOfBits = 2;
+        
+        
+        //While in the hash table
+        while( position < hTable.size() ){
             
-            if( bin.length() > Integer.toBinaryString(keyInt).length() ){
-                if( bin.substring(bin.length()-counter).toString().equals(Integer.toBinaryString(keyInt)) ){
-                   if( hTable.get(compared-1).nKeys < 4){
-                        hTable.get(compared-1).key[hTable.get(compared-1).nKeys] = key;
-                        hTable.get(compared-1).value[hTable.get(compared-1).nKeys] = value;
-                        counter = 0;
+            //While position is less than the number of positions for a bit length
+            //For example if numOfBits is 2 position will iterate 4 times( 00,01,10,11 )
+            //If numOfBits is 3 is will iterate 8 times ( 000,001,010,011,100,101,110,111 )
+            while( position / Math.pow(2, numOfBits) < 1 ){
+
+                //If your bit string for the key to find is not at least the number
+                //of bits, prepend 0's until you reach the numOfBits. This 
+                //will allow for the substring to consistently pull the right
+                //amount of characters out of the string
+                if( bin.length() < numOfBits ){
+                    String prepend = "";
+                    for( int i = 0 ; i < numOfBits - bin.length() ; i++ ){
+                        prepend += "0";
+                    }
+                    bin = prepend + bin;
+                }
+                
+                //If the position bit string is not at least the number
+                //of bits, prepend 0's until you reach the numOfBits. This 
+                //will allow for the substring to consistently pull the right
+                //amount of characters out of the string
+                String rowString = Integer.toBinaryString(position);
+                if( rowString.length() < numOfBits ){
+                    String prepend = "";
+                    for( int i = 0 ; i < numOfBits - rowString.length() ; i++ ){
+                        prepend += "0";
+                    }
+                    rowString = prepend + rowString;
+                }
+                           
+                //Generate substrings from the key and position based on the numOfBits
+                //value and compare them
+                if( bin.substring(bin.length()-numOfBits).equals( rowString.substring(rowString.length()-numOfBits ) ) ){
+                    
+                    if( hTable.get(position).nKeys == 4 ){
+                        this.addNewBuckets(position);
+                    }
+                    else if( hTable.get(position).nKeys < 4 ){
+                        hTable.get(position).key[hTable.get(position).nKeys] = key;
+                        hTable.get(position).value[hTable.get(position).nKeys] = value;
                         insertCount++;
-                        hTable.get(compared-1).nKeys++;
+                        hTable.get(position).nKeys++;
                         return null;
                     }
-                }
-            }
-            else if( bin.length() == Integer.toBinaryString(keyInt).length() ){  
-                if( bin.equals(Integer.toBinaryString(keyInt)) ){
-                   if( hTable.get(compared-1).nKeys < 4){
-                        hTable.get(compared-1).key[hTable.get(compared-1).nKeys] = key;
-                        hTable.get(compared-1).value[hTable.get(compared-1).nKeys] = value;
-                        counter = 0;
-                        insertCount++;
-                        hTable.get(compared-1).nKeys++;
-                        return null;
-                    }
-                }
-            }
-            else{
-                String prepend = "";
-                for( int i = 0 ; i < compared - bin.length() ; i++ ){
-                    prepend += "0";
-                }
-                
-                bin = prepend + bin;
-                
-                if( bin.equals(Integer.toBinaryString(compared)) ){
-                   if( hTable.get(compared-1).nKeys < 4){
-                        hTable.get(compared-1).key[hTable.get(compared-1).nKeys] = key;
-                        hTable.get(compared-1).value[hTable.get(compared-1).nKeys] = value;
-                        counter = 0;
-                        insertCount++;
-                        hTable.get(compared-1).nKeys++;
-                        return null;
-                    }
-                }
-                
-                
+                    
+                }//if
+            
+                //Move through the hash table
+                position++;
                 
             }
             
-            compared--;
-            counter--;
-        }      
-                
+            //Increase the number of bits to compare
+            numOfBits++;
+            position--;
+        }
+
         return null;
     } // put
+    
+    /**
+     * Split from split variable to provided node
+     */
+    private void addNewBuckets( int lastNodeToSplit ){
+        for( int i = split ; i <= lastNodeToSplit ; i++ ){
+            this.hTable.add(new Bucket());
+            split++;
+        }
+    }
 
     /***************************************************************************
      * Return the size (SLOTS * number of home buckets) of the hash table. 
@@ -300,26 +314,20 @@ public class LinHash <K, V>
     /***************************************************************************
      * Print the hash table.
      */
-    private void print ()
+    public void print ()
     {
         out.println ("Hash Table (Linear Hashing)");
         out.println ("-------------------------------------------");
         
-        //Use the entry set method and generate a set of all key/value pairs
-        //in the hash table
-        Set <Map.Entry <K, V>> linSet = this.entrySet();
-        Iterator itr = linSet.iterator();
-        
-        //Use an iterator over the set to get the key/hash/value pairs for each bucket
-        //Print them out per bucket
+        //Go through the hTable and get all key/value pairs into a map
         for( int i = 0 ; i < hTable.size() ; i++ ){
             System.out.println("Bucket " + i + ":");
             for( int j = 0 ; j < hTable.get(i).nKeys ; j++ ){
-                Map.Entry ent = (Map.Entry<K, V>) itr.next();
-                System.out.println( "   Key: " + ent.getKey() +  " | Hash: " + h( ent.getKey() )  + " | Value: " + ent.getValue() );
-            }
-        }
-
+                System.out.println( "   Key: " + hTable.get(i).key[j] +  " | Hash: " + h( hTable.get(i).key[j] )  + " | Value: " + hTable.get(i).value[j] );
+            }//for
+            
+        }//for
+        
         out.println ("-------------------------------------------");
     } // print
 
@@ -352,13 +360,14 @@ public class LinHash <K, V>
         LinHash <Integer, Integer> ht = new LinHash <> (Integer.class, Integer.class, 11);
         int nKeys = 30;
         if (args.length == 1) nKeys = Integer.valueOf (args [0]);
-        for (int i = 1; i < nKeys; i += 2) ht.put (i, i * i);
+        for (int i = 1; i < nKeys; i += 2) ht.put (i, i * i);     
         ht.print ();
         for (int i = 0; i < nKeys; i++) {
             out.println ("key = " + i + " value = " + ht.get (i));
         } // for
         out.println ("-------------------------------------------");
         out.println ("Average number of buckets accessed = " + ht.count / (double) nKeys);
+        ht.print();
     } // main
 
 } // LinHash class
