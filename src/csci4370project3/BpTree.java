@@ -65,8 +65,8 @@ public class BpTree <K extends Comparable <K>, V>
 
 /**
  *  total number of keys updated on insert method;
- * /
- private int numKeys= 0;
+ */
+    private int numKeys= 0;
 
 	 
     /***************************************************************************
