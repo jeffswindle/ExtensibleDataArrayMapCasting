@@ -91,11 +91,18 @@ public class LinHash <K, V>
      */
     public Set <Map.Entry <K, V>> entrySet ()
     {
-        Set <Map.Entry <K, V>> enSet = new HashSet <> ();
-
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
+        //Set <Map.Entry <K, V>> enSet = new HashSet <> ();
+        Map<K, V> mp = new HashMap<>();
+        
+        for( int i = 0 ; i < hTable.size() ; i++ ){
+            
+            for( int j = 0 ; j < hTable.get(i).nKeys ; j++ ){
+                mp.put(hTable.get(i).key[j], hTable.get(i).value[j]);
+            }//for
+            
+        }//for
+        
+        Set <Map.Entry <K, V>> enSet = mp.entrySet();
             
         return enSet;
     } // entrySet
@@ -150,9 +157,13 @@ public class LinHash <K, V>
         out.println ("Hash Table (Linear Hashing)");
         out.println ("-------------------------------------------");
 
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
+        Set <Map.Entry <K, V>> linSet = this.entrySet();
+        Iterator itr = linSet.iterator();
+        
+        while( itr.hasNext() ){
+            Map.Entry ent = (Map.Entry<K, V>) itr.next();
+            System.out.println( "Key: " + ent.getKey().hashCode() + " | Value: " + ent.getValue() );
+        }    
 
         out.println ("-------------------------------------------");
     } // print
