@@ -314,28 +314,159 @@ out.println("DEBUG:: headMap: depth is " + depth);
     /***************************************************************************
      * Return the portion of the B+Tree map where fromKey <= key.
      * @return  the submap with keys in the range [fromKey, lastKey]
+     * @author Stephen Lago
      */
     public SortedMap <K,V> tailMap (K fromKey)
     {
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
-
-        return null;
+    	BpTree<K, V> result = new BpTree<K, V>(classK,classV);
+    	//if fromkey is greater than or equal to the lastKey 
+    	if((fromKey.compareTo(this.lastKey())>0) || (fromKey.compareTo(this.lastKey())==0))
+    	{
+    		//return null, there are no values to return
+    		return(null);
+    	}
+    	//if the root is a leaf node
+    	if(this.root.isLeaf)
+    	{
+    		int i = (root.nKeys-1);
+    		//go through all the keys of the root
+    		while(i>0)
+    		{
+    			//if the key is greater than fromKey
+    			if(root.key[i].compareTo(fromKey)>0)
+    			{
+    				//add the pair to the result tree
+    				result.put(root.key[i],(V) root.ref[i]);
+    			//if the key is lesser than or equal to fromKey, there are no more keys to add
+    			}else
+    			{
+    				//exit the loop
+    				break;
+    			}
+    			//increment
+    			i--;
+    		}
+    	}
+    	//if the root is not a leaf node
+    	//find the depth of the tree
+    	int depth = 0;
+    	Node currentNode = root;
+    	while(!currentNode.isLeaf)
+    	{
+    		depth++;
+    		currentNode = (Node) currentNode.ref[0];
+    	}
+out.println("DEBUG:: headMap: depth is " + depth);
+    	//begin at the root
+		currentNode = root;
+		//start at the root level
+    	int currentLevel = 0;
+    	//an array to store the current index of each level (avoiding recursion here)
+    	int[] holder = new int[depth];
+    	Stack<Node> nodeHolder = new Stack<Node>();
+    	//initialize the array to an array of nKeys's
+    	for(int i=0;i<depth;i++)
+    	{
+    		holder[i] = (currentNode.nKeys-1);
+    		currentNode = (Node) currentNode.ref[holder[i]];
+    	}
+    	//begin at the root
+    	currentNode = root;
+    	//starting key is root's rightmost key
+    	K currentK = root.key[root.nKeys];
+    	//continue through the tree in reverse order, until a smaller key is found
+    	while(currentK.compareTo(fromKey)>0)
+    	{
+    		//if we are looking at a leaf node
+    		if(currentLevel==depth)
+    		{
+    			//put the current node into the result tree 
+    			result.put(currentNode.key[holder[currentLevel]],(V) currentNode.ref[holder[currentLevel]]);
+    			//move to the previous key in the node
+    			holder[currentLevel]--;
+    			//if we are done with the node, we must move up one and increment
+    			if(holder[currentLevel]<0)
+    			{
+    				//move up
+    				currentLevel--;
+    				//get the parent Node
+    				currentNode = (Node) nodeHolder.pop();
+    				//move to the next key in the node
+    				holder[currentLevel]--;
+    				//find out what the next pointer to get will be
+    				int toGet = holder[currentLevel];
+    				//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
+					if(!(toGet<0))
+					{
+						//otherwise assign the next K
+						currentK = currentNode.key[toGet];
+	    				//reset the holder in case we visit the next level again 
+	    				holder[currentLevel+1] = (((Node) (currentNode.ref[toGet])).nKeys)-1;
+					}
+    			}
+    		//if we are looking at an internal node
+    		}else
+    		{
+    			//if there are no more pointers
+    			if(holder[currentLevel]<0)
+    			{
+    				//if we are in the root, the tree is done
+    				if(currentLevel==0)
+    				{
+    					//exit and return
+    					break;
+    				//if it is a non-root internal node, move up one node and continue
+    				}else
+    				{
+    					//move up
+    					currentLevel--;
+    					//get the parent Node
+    					currentNode = (Node) nodeHolder.pop();
+    					//increment the location in the node (move to the next key)
+    					holder[currentLevel]--;
+    					//find out what the next pointer to get will be
+    					int toGet = holder[currentLevel];
+    					//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
+    					if(!(toGet<0))
+    					{
+    						//reset the lower level's index in case we visit it again
+        					holder[currentLevel+1] = (((Node) (currentNode.ref[toGet])).nKeys)-1;
+    						//otherwise assign the next K
+    						currentK = currentNode.key[toGet];
+    					}
+    				}
+    			//if we are not done with the node yet
+    			}else
+    			{
+    				//push the current Node onto the stack to establish it as the parent
+    				nodeHolder.push(currentNode);
+    				//set the current node with the appropriate pointer
+    				currentNode = (Node) currentNode.ref[holder[currentLevel]];
+    				//move down
+    				currentLevel++;
+    				//set the current K to the appropriate key
+    				currentK = currentNode.key[holder[currentLevel]];
+    			}
+    		}
+    	}
+    	
+    	return result;
     } // tailMap
 
     /***************************************************************************
      * Return the portion of the B+Tree map whose keys are between fromKey and toKey,
      * i.e., fromKey <= key < toKey.
      * @return  the submap with keys in the range [fromKey, toKey)
+     * @author Stephen Lago
      */
     public SortedMap <K,V> subMap (K fromKey, K toKey)
     {
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
+    	BpTree<K, V> result = new BpTree<K, V>(classK,classV);
 
-        return null;
+    	result = (BpTree<K, V>) this.headMap(toKey);
+    	result = (BpTree<K, V>) result.tailMap(fromKey);
+    	
+        return result;
     } // subMap
 
     /***************************************************************************
@@ -544,18 +675,43 @@ out.println("DEBUG:: headMap: depth is " + depth);
             out.println ("key = " + i + " value = " + bpt.get (i));
         } // for
         out.println ("-------------------------------------------");
+        out.println ("First key is " + bpt.firstKey());
+        out.println ("Last key is " + bpt.lastKey());
+        out.println ("-------------------------------------------");
         out.println ("Average number of nodes accessed = " + bpt.count / (double) totKeys);
         
         out.println("--------------------------------------------");
         out.println("Testing for Submap methods: ");
-        out.println("bpt.headMap(7) : ");
-        BpTree <Integer, Integer> bpt2 = (BpTree<Integer, Integer>) bpt.headMap(7);
-        bpt2.print (bpt2.root, 0);
-        out.println("\n\nbpt.tailMap(5) : ");
-        BpTree <Integer, Integer> bpt3 = (BpTree<Integer, Integer>) bpt.tailMap(5);
-        bpt3.print (bpt3.root, 0);
-        out.println("\n\nbpt.subMap(3,11) : ");
-        BpTree <Integer, Integer> bpt4 = (BpTree<Integer, Integer>) bpt.subMap(3,11);
+        out.println("Testing headMap(): ");
+        out.println("When index is below min (empty tree): ");
+        BpTree <Integer, Integer> bpth1 = (BpTree<Integer, Integer>) bpt.headMap(0);
+        bpth1.print (bpth1.root, 0);
+        out.println("\nWhen index is above max key (original tree): ");
+        BpTree <Integer, Integer> bpth2 = (BpTree<Integer, Integer>) bpt.headMap(100);
+        bpth2.print (bpth2.root, 0);
+        out.println("\nWhen index is between min and max keys (sub tree): ");
+        BpTree <Integer, Integer> bpth3 = (BpTree<Integer, Integer>) bpt.headMap(7);
+        bpth3.print (bpth3.root, 0);
+        out.println("\n\nTesting tailMap(): ");
+        out.println("When index is below min (original tree): ");
+        BpTree <Integer, Integer> bptt1 = (BpTree<Integer, Integer>) bpt.tailMap(0);
+        bptt1.print (bptt1.root, 0);
+        out.println("\nWhen index is above max (empty tree): ");
+        BpTree <Integer, Integer> bptt2 = (BpTree<Integer, Integer>) bpt.tailMap(100);
+        bptt2.print (bptt2.root, 0);
+        out.println("\nWhen index is between min and max (sub tree): ");
+        BpTree <Integer, Integer> bptt3 = (BpTree<Integer, Integer>) bpt.tailMap(5);
+        bptt3.print (bptt3.root, 0);
+        out.println("\n\nTesting subMap(): ");
+        out.println("When index1 is below min (essentially head map): ");
+        BpTree <Integer, Integer> bpts1 = (BpTree<Integer, Integer>) bpt.subMap(0,7);
+        bpts1.print (bpts1.root, 0);
+        out.println("\nWhen index2 is above max (essentially tail map): ");
+        BpTree <Integer, Integer> bpts2 = (BpTree<Integer, Integer>) bpt.subMap(5,100);
+        bpts2.print (bpts2.root, 0);
+        out.println("\nWhen index1 is above min index2 is below max (true sub tree): ");
+        BpTree <Integer, Integer> bpts3 = (BpTree<Integer, Integer>) bpt.subMap(3,7);
+        bpts3.print (bpts3.root, 0);
     } // main
 
 } // BpTree class
