@@ -309,7 +309,7 @@ public class BpTree <K extends Comparable <K>, V>
     	if((toKey.compareTo(this.firstKey())<0) || (toKey.compareTo(this.firstKey())==0))
     	{
     		//return null, there are no values to return
-    		return(null);
+    		return(result);
     	}
     	//if the root is a leaf node
     	if(this.root.isLeaf)
@@ -446,7 +446,7 @@ public class BpTree <K extends Comparable <K>, V>
     	if((fromKey.compareTo(this.lastKey())>0) || (fromKey.compareTo(this.lastKey())==0))
     	{
     		//return null, there are no values to return
-    		return(null);
+    		return(result);
     	}
     	//if the root is a leaf node
     	if(this.root.isLeaf)
