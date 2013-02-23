@@ -63,6 +63,12 @@ public class BpTree <K extends Comparable <K>, V>
      */
     private int count = 0;
 
+/**
+ *  total number of keys updated on insert method;
+ * /
+ private int numKeys= 0;
+
+	 
     /***************************************************************************
      * Construct an empty B+Tree map.
      * @param _classK  the class for keys (K)
@@ -476,10 +482,8 @@ out.println("DEBUG:: headMap: depth is " + depth);
     public int size ()
     {
         int sum = 0;
-
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
+	//sum is numKeys
+             sum=numKeys;
 
         return  sum;
     
@@ -546,6 +550,11 @@ out.println("DEBUG:: headMap: depth is " + depth);
                 } else if (key.equals (k_i)) {
                     out.println ("BpTree:insert: attempt to insert duplicate key = " + key);
                 } // if
+                
+                //the number of keys are updated after each insertion
+                numKeys++;
+                
+                
             } // for
             wedge (key, ref, n, n.nKeys);
         } else {
