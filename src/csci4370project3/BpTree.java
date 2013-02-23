@@ -441,13 +441,13 @@ out.println("DEBUG:: headMap: depth is " + depth);
      */
     private Node split (K key, V ref, Node n)
     {
-        Node parent = new Node(false);
+       Node parent = new Node(false);
         Node leftChild = new Node(true);
         Node rightChild = new Node(true);
         int splitPosition = 0;
-        for(int i = 0; i < n.nKeys;i++){
+        for(int i = 0; i < n.nKeys - 1;i++){
             
-            if(key.compareTo(n.key[i]) > 0){
+            if(key.compareTo(n.key[i]) > 0 && key.compareTo(n.key[i+1]) < 0){
                 
                 splitPosition = i;
                 break;
@@ -460,29 +460,59 @@ out.println("DEBUG:: headMap: depth is " + depth);
             if(splitPosition == i){
                 leftChild.key[i] = key;
                 leftChild.ref[i] = ref;
+                leftChild.nKeys++;
                 i++;
                 if(i < 2){
                     leftChild.key[i] = n.key[i-1];
                     leftChild.ref[i] = n.ref[i-1];
+                    leftChild.nKeys++;
                 }
                 else{
                     rightChild.key[0] = n.key[i-1];
                     rightChild.ref[0] = n.ref[i-1];
+                    rightChild.nKeys++;
                 }
+            }
+            else{
+                leftChild.key[i] = n.key[i];
+                leftChild.ref[i] = n.ref[i];
+                leftChild.nKeys++;
             }
         }
         int j = 2;
         for(int i = rightChild.nKeys; i < 4; i++){
             if(splitPosition == j){
-                leftChild.key[i] = key;
-                leftChild.ref[i] = ref;
+                rightChild.key[i] = key;
+                rightChild.ref[i] = ref;
+                rightChild.nKeys++;
                 i++;
             }
+            else{
+                rightChild.key[i] = n.key[j];
+                rightChild.ref[i] = n.ref[j];
+                rightChild.nKeys++;
+            }
+            j++;
             
         }
         parent.key[0] = rightChild.key[0];
         parent.ref[0] = leftChild;
         parent.ref[1] = rightChild;
+        parent.nKeys++;
+        
+        /*System.out.println("PARENT KEYS");
+        for(int i = 0; i < parent.nKeys; i++){
+            System.out.println(parent.key[i]);
+         }
+        System.out.println("LEFT CHILD KEYS");
+        for(int i = 0; i < leftChild.nKeys; i++){
+            System.out.println(leftChild.key[i]);
+        }
+        System.out.println("RIGHT CHILD KEYS");
+        for(int i = 0; i < rightChild.nKeys; i++){
+            System.out.println(rightChild.key[i]);
+        }*/
+        
         
         return parent;
     } // split
