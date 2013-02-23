@@ -41,12 +41,12 @@ public class LinHash <K, V>
         V []   value;
         Bucket next;
         @SuppressWarnings("unchecked")
-        Bucket (Bucket n)
+        Bucket ()//Bucket n)
         {
             nKeys = 0;
             key   = (K []) Array.newInstance (classK, SLOTS);
             value = (V []) Array.newInstance (classV, SLOTS);
-            next  = n;
+            next  = null;//n;
         } // constructor
     } // Bucket inner class
 
@@ -69,6 +69,11 @@ public class LinHash <K, V>
     /** The index of the next bucket to split.
      */
     private int split = 0;
+	
+	/**
+     * The number of items inserted into the hash table
+     */
+    private int insertCount = 0;
 
     /***************************************************************************
      * Construct a hash table that uses Linear Hashing.
