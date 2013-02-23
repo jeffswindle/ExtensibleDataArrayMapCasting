@@ -789,7 +789,18 @@ out.println("DEBUG:: headMap: depth is " + depth);
         out.println ("Last key is " + bpt.lastKey());
         out.println ("-------------------------------------------");
         out.println ("Average number of nodes accessed = " + bpt.count / (double) totKeys);
-        
+        out.println("--------------------------------------------");
+        out.println("Testing for entrySet: ");
+        Set <Map.Entry <Integer, Integer>> mySet = new HashSet <> ();
+        mySet = bpt.entrySet();
+        out.println("Entry Set created for tree");
+        out.println("Iterating over the created set: ");
+        Iterator itr = mySet.iterator();
+        while(itr.hasNext())
+        {
+        	Map.Entry ent = (Map.Entry<Integer, Integer>) itr.next();
+        	out.println("key = " + ent.getKey() + "; value = " + ent.getValue());
+        }
         out.println("--------------------------------------------");
         out.println("Testing for Submap methods: ");
         out.println("Testing headMap(): ");
