@@ -114,12 +114,51 @@ public class LinHash <K, V>
      */
     public V get (Object key)
     {
-        int i = h (key);
+        int keyInt = h (key);
+        
+        String bin = Integer.toBinaryString(keyInt);
+        
+        int position = 0;
+        int lastBucketPosition = hTable.size();
+        int numOfBits = 2;
+        
+        while( position < lastBucketPosition ){
+            
+            while( position / Math.pow(2, numOfBits) < 1 ){
 
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
-
+                if( bin.length() < numOfBits ){
+                    String prepend = "";
+                    for( int i = 0 ; i < numOfBits - bin.length() ; i++ ){
+                        prepend += "0";
+                    }
+                    bin = prepend + bin;
+                }
+                
+                String rowString = Integer.toBinaryString(position);
+                
+                if( rowString.length() < numOfBits ){
+                    String prepend = "";
+                    for( int i = 0 ; i < numOfBits - rowString.length() ; i++ ){
+                        prepend += "0";
+                    }
+                    rowString = prepend + rowString;
+                }
+                           
+                if( bin.substring(bin.length()-numOfBits).equals( rowString.substring(rowString.length()-numOfBits ) ) ){
+                    for( int i = 0 ; i < hTable.get(position).nKeys ; i++ ){
+                        if( hTable.get(position).key[i] == key ){
+                            return hTable.get(position).value[i];
+                        }//if
+                    }//for
+                }//if
+            
+                //Move through the hash table
+                position++;
+                
+            }
+            
+            numOfBits++;
+        }
         return null;
     } // get
 
