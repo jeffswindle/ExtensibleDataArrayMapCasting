@@ -216,104 +216,105 @@ public class BpTree <K extends Comparable <K>, V>
     			//increment
     			i++;
     		}
-    	}
-    	//if the root is not a leaf node
-    	//find the depth of the tree
-    	int depth = 0;
-    	Node currentNode = root;
-    	while(!currentNode.isLeaf)
+    	}else
     	{
-    		depth++;
-    		currentNode = (Node) currentNode.ref[0];
-    	}
-out.println("DEBUG:: headMap: depth is " + depth);
-    	//begin at the root
-		currentNode = root;
-		//start at the root level
-    	int currentLevel = 0;
-    	//an array to store the current index of each level (avoiding recursion here)
-    	int[] holder = new int[depth];
-    	Stack<Node> nodeHolder = new Stack<Node>();
-    	//initialize the array to an array of 0's
-    	for(int i=0;i<depth;i++){holder[i] = 0;}
-    	//starting key is root's leftmost key
-    	K currentK = root.key[0];
-    	//continue through the tree in order, until a larger key is found
-    	while(currentK.compareTo(toKey)<0)
-    	{
-    		//if we are looking at a leaf node
-    		if(currentLevel==depth)
+    		//if the root is not a leaf node
+    		//find the depth of the tree
+    		int depth = 0;
+    		Node currentNode = root;
+    		while(!currentNode.isLeaf)
     		{
-    			//put the current node into the result tree 
-    			result.put(currentNode.key[holder[currentLevel]],(V) currentNode.ref[holder[currentLevel]]);
-    			//move to the next key in the node
-    			holder[currentLevel]++;
-    			//if we are done with the node, we must move up one and increment
-    			if(holder[currentLevel]>=currentNode.nKeys)
+    			depth++;
+    			currentNode = (Node) currentNode.ref[0];
+    		}
+    		out.println("DEBUG:: headMap: depth is " + depth);
+    		//begin at the root
+    		currentNode = root;
+    		//start at the root level
+    		int currentLevel = 0;
+    		//an array to store the current index of each level (avoiding recursion here)
+    		int[] holder = new int[depth];
+    		Stack<Node> nodeHolder = new Stack<Node>();
+    		//initialize the array to an array of 0's
+    		for(int i=0;i<depth;i++){holder[i] = 0;}
+    		//starting key is root's leftmost key
+    		K currentK = root.key[0];
+    		//continue through the tree in order, until a larger key is found
+    		while(currentK.compareTo(toKey)<0)
+    		{
+    			//if we are looking at a leaf node
+    			if(currentLevel==depth)
     			{
-    				//reset the holder in case we visit this level again 
-    				holder[currentLevel] = 0;
-    				//move up
-    				currentLevel--;
-    				//get the parent Node
-    				currentNode = (Node) nodeHolder.pop();
+    				//put the current node into the result tree 
+    				result.put(currentNode.key[holder[currentLevel]],(V) currentNode.ref[holder[currentLevel]]);
     				//move to the next key in the node
     				holder[currentLevel]++;
-    				//find out what the next pointer to get will be
-    				int toGet = holder[currentLevel];
-    				//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
-					if(!(holder[currentLevel]>=currentNode.nKeys))
-					{
-						//otherwise assign the next K
-						currentK = currentNode.key[toGet];
-					}
-    			}
-    		//if we are looking at an internal node
-    		}else
-    		{
-    			//if there are no more pointers
-    			if(holder[currentLevel]>currentNode.nKeys)
-    			{
-    				//if we are in the root, the tree is done
-    				if(currentLevel==0)
+    				//if we are done with the node, we must move up one and increment
+    				if(holder[currentLevel]>=currentNode.nKeys)
     				{
-    					//exit and return
-    					break;
-    				//if it is a non-root internal node, move up one node and continue
-    				}else
-    				{
-    					//set the current level's index back to 0 in case we visit it again
+    					//reset the holder in case we visit this level again 
     					holder[currentLevel] = 0;
     					//move up
     					currentLevel--;
     					//get the parent Node
     					currentNode = (Node) nodeHolder.pop();
-    					//increment the location in the node (move to the next key)
+    					//move to the next key in the node
     					holder[currentLevel]++;
     					//find out what the next pointer to get will be
     					int toGet = holder[currentLevel];
     					//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
-    					if(!(holder[currentLevel]>currentNode.nKeys))
+    					if(!(holder[currentLevel]>=currentNode.nKeys))
     					{
     						//otherwise assign the next K
     						currentK = currentNode.key[toGet];
     					}
     				}
-    			//if we are not done with the node yet
+    				//if we are looking at an internal node
     			}else
     			{
-    				//push the current Node onto the stack to establish it as the parent
-    				nodeHolder.push(currentNode);
-    				//set the current node with the appropriate pointer
-    				currentNode = (Node) currentNode.ref[holder[currentLevel]];
-    				//move down
-    				currentLevel++;
-    				//set the current K to the appropriate key
-    				currentK = currentNode.key[holder[currentLevel]];
+    				//if there are no more pointers
+    				if(holder[currentLevel]>currentNode.nKeys)
+    				{
+    					//if we are in the root, the tree is done
+    					if(currentLevel==0)
+    					{
+    						//exit and return
+    						break;
+    						//if it is a non-root internal node, move up one node and continue
+    					}else
+    					{
+    						//set the current level's index back to 0 in case we visit it again
+    						holder[currentLevel] = 0;
+    						//move up
+    						currentLevel--;
+    						//get the parent Node
+    						currentNode = (Node) nodeHolder.pop();
+    						//increment the location in the node (move to the next key)
+    						holder[currentLevel]++;
+    						//find out what the next pointer to get will be
+    						int toGet = holder[currentLevel];
+    						//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
+    						if(!(holder[currentLevel]>currentNode.nKeys))
+    						{
+    							//otherwise assign the next K
+    							currentK = currentNode.key[toGet];
+    						}
+    					}
+    					//if we are not done with the node yet
+    				}else
+    				{
+    					//push the current Node onto the stack to establish it as the parent
+    					nodeHolder.push(currentNode);
+    					//set the current node with the appropriate pointer
+    					currentNode = (Node) currentNode.ref[holder[currentLevel]];
+    					//move down
+    					currentLevel++;
+    					//set the current K to the appropriate key
+    					currentK = currentNode.key[holder[currentLevel]];
+    				}
     			}
     		}
     	}
-    	
     	return result;
     } // headMap
 
@@ -352,110 +353,111 @@ out.println("DEBUG:: headMap: depth is " + depth);
     			//increment
     			i--;
     		}
-    	}
-    	//if the root is not a leaf node
-    	//find the depth of the tree
-    	int depth = 0;
-    	Node currentNode = root;
-    	while(!currentNode.isLeaf)
+    	}else
     	{
-    		depth++;
-    		currentNode = (Node) currentNode.ref[0];
-    	}
-out.println("DEBUG:: headMap: depth is " + depth);
-    	//begin at the root
-		currentNode = root;
-		//start at the root level
-    	int currentLevel = 0;
-    	//an array to store the current index of each level (avoiding recursion here)
-    	int[] holder = new int[depth];
-    	Stack<Node> nodeHolder = new Stack<Node>();
-    	//initialize the array to an array of nKeys's
-    	for(int i=0;i<depth;i++)
-    	{
-    		holder[i] = (currentNode.nKeys-1);
-    		currentNode = (Node) currentNode.ref[holder[i]];
-    	}
-    	//begin at the root
-    	currentNode = root;
-    	//starting key is root's rightmost key
-    	K currentK = root.key[root.nKeys];
-    	//continue through the tree in reverse order, until a smaller key is found
-    	while(currentK.compareTo(fromKey)>0)
-    	{
-    		//if we are looking at a leaf node
-    		if(currentLevel==depth)
+    		//if the root is not a leaf node
+    		//find the depth of the tree
+    		int depth = 0;
+    		Node currentNode = root;
+    		while(!currentNode.isLeaf)
     		{
-    			//put the current node into the result tree 
-    			result.put(currentNode.key[holder[currentLevel]],(V) currentNode.ref[holder[currentLevel]]);
-    			//move to the previous key in the node
-    			holder[currentLevel]--;
-    			//if we are done with the node, we must move up one and increment
-    			if(holder[currentLevel]<0)
+    			depth++;
+    			currentNode = (Node) currentNode.ref[0];
+    		}
+    		out.println("DEBUG:: headMap: depth is " + depth);
+    		//begin at the root
+    		currentNode = root;
+    		//start at the root level
+    		int currentLevel = 0;
+    		//an array to store the current index of each level (avoiding recursion here)
+    		int[] holder = new int[depth];
+    		Stack<Node> nodeHolder = new Stack<Node>();
+    		//initialize the array to an array of nKeys's
+    		for(int i=0;i<depth;i++)
+    		{
+    			holder[i] = (currentNode.nKeys-1);
+    			currentNode = (Node) currentNode.ref[holder[i]];
+    		}
+    		//begin at the root
+    		currentNode = root;
+    		//starting key is root's rightmost key
+    		K currentK = root.key[root.nKeys];
+    		//continue through the tree in reverse order, until a smaller key is found
+    		while(currentK.compareTo(fromKey)>0)
+    		{
+    			//if we are looking at a leaf node
+    			if(currentLevel==depth)
     			{
-    				//move up
-    				currentLevel--;
-    				//get the parent Node
-    				currentNode = (Node) nodeHolder.pop();
-    				//move to the next key in the node
+    				//put the current node into the result tree 
+    				result.put(currentNode.key[holder[currentLevel]],(V) currentNode.ref[holder[currentLevel]]);
+    				//move to the previous key in the node
     				holder[currentLevel]--;
-    				//find out what the next pointer to get will be
-    				int toGet = holder[currentLevel];
-    				//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
-					if(!(toGet<0))
-					{
-						//otherwise assign the next K
-						currentK = currentNode.key[toGet];
-	    				//reset the holder in case we visit the next level again 
-	    				holder[currentLevel+1] = (((Node) (currentNode.ref[toGet])).nKeys)-1;
-					}
-    			}
-    		//if we are looking at an internal node
-    		}else
-    		{
-    			//if there are no more pointers
-    			if(holder[currentLevel]<0)
-    			{
-    				//if we are in the root, the tree is done
-    				if(currentLevel==0)
-    				{
-    					//exit and return
-    					break;
-    				//if it is a non-root internal node, move up one node and continue
-    				}else
+    				//if we are done with the node, we must move up one and increment
+    				if(holder[currentLevel]<0)
     				{
     					//move up
     					currentLevel--;
     					//get the parent Node
     					currentNode = (Node) nodeHolder.pop();
-    					//increment the location in the node (move to the next key)
+    					//move to the next key in the node
     					holder[currentLevel]--;
     					//find out what the next pointer to get will be
     					int toGet = holder[currentLevel];
     					//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
     					if(!(toGet<0))
     					{
-    						//reset the lower level's index in case we visit it again
-        					holder[currentLevel+1] = (((Node) (currentNode.ref[toGet])).nKeys)-1;
     						//otherwise assign the next K
     						currentK = currentNode.key[toGet];
+    						//reset the holder in case we visit the next level again 
+    						holder[currentLevel+1] = (((Node) (currentNode.ref[toGet])).nKeys)-1;
     					}
     				}
-    			//if we are not done with the node yet
+    				//if we are looking at an internal node
     			}else
     			{
-    				//push the current Node onto the stack to establish it as the parent
-    				nodeHolder.push(currentNode);
-    				//set the current node with the appropriate pointer
-    				currentNode = (Node) currentNode.ref[holder[currentLevel]];
-    				//move down
-    				currentLevel++;
-    				//set the current K to the appropriate key
-    				currentK = currentNode.key[holder[currentLevel]];
+    				//if there are no more pointers
+    				if(holder[currentLevel]<0)
+    				{
+    					//if we are in the root, the tree is done
+    					if(currentLevel==0)
+    					{
+    						//exit and return
+    						break;
+    						//if it is a non-root internal node, move up one node and continue
+    					}else
+    					{
+    						//move up
+    						currentLevel--;
+    						//get the parent Node
+    						currentNode = (Node) nodeHolder.pop();
+    						//increment the location in the node (move to the next key)
+    						holder[currentLevel]--;
+    						//find out what the next pointer to get will be
+    						int toGet = holder[currentLevel];
+    						//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
+    						if(!(toGet<0))
+    						{
+    							//reset the lower level's index in case we visit it again
+    							holder[currentLevel+1] = (((Node) (currentNode.ref[toGet])).nKeys)-1;
+    							//otherwise assign the next K
+    							currentK = currentNode.key[toGet];
+    						}
+    					}
+    					//if we are not done with the node yet
+    				}else
+    				{
+    					//push the current Node onto the stack to establish it as the parent
+    					nodeHolder.push(currentNode);
+    					//set the current node with the appropriate pointer
+    					currentNode = (Node) currentNode.ref[holder[currentLevel]];
+    					//move down
+    					currentLevel++;
+    					//set the current K to the appropriate key
+    					currentK = currentNode.key[holder[currentLevel]];
+    				}
     			}
     		}
     	}
-    	
     	return result;
     } // tailMap
 
