@@ -10,6 +10,7 @@ import java.io.*;
 import java.lang.reflect.Array;
 import static java.lang.System.out;
 import java.util.*;
+import java.nio.ByteBuffer;
 
 /*******************************************************************************
  * This class provides hash maps that use the Linear Hashing algorithm.
