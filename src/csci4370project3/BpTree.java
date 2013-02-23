@@ -164,21 +164,19 @@ public class BpTree <K extends Comparable <K>, V>
     {
 	
         if( this.root.isLeaf ){
-            return this.root.key[this.root.nKeys];
+            return this.root.key[this.root.nKeys-1];
         }
         else{
             
             Node tempNode = this.root;
             
             while( !tempNode.isLeaf ){
-                tempNode = (Node)tempNode.ref[tempNode.nKeys];
+                tempNode = (Node)tempNode.ref[tempNode.nKeys-1];
             }
             
             return tempNode.key[tempNode.nKeys];
             
         }
-		
-        return null;
     } // lastKey
 
     /***************************************************************************
