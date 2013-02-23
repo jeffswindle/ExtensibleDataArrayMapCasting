@@ -658,33 +658,143 @@ public class BpTree <K extends Comparable <K>, V>
      * @param n    the current node
      * @param p    the parent node
      */
-    private void insert (K key, V ref, Node n, Node p)
+      private void insert (K key, V ref, Node n, Node p)
     {
-        if (n.nKeys < ORDER - 1) {
-            for (int i = 0; i < n.nKeys; i++) {
-                K k_i = n.key [i];
-                if (key.compareTo (k_i) < 0) {
-                    wedge (key, ref, n, i);
-                } else if (key.equals (k_i)) {
-                    out.println ("BpTree:insert: attempt to insert duplicate key = " + key);
-                } // if
-                
-                //the number of keys are updated after each insertion
-                numKeys++;
-                
-                
-            } // for
-            wedge (key, ref, n, n.nKeys);
-        } else {
-            Node sib = split (key, ref, n);
+        System.out.println("WHAT A LOVELY TREE!");
+        //print(root, 0);
 
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
+        //If we are not currently dealing with a leaf.
+        if(n.isLeaf != true){
+            insertStack.push(n);
+            boolean inserted = false;
+            for(int i = 0; i < n.nKeys+1; i++){
+                Node childNode = (Node) n.ref[i];
+                //System.out.println("Child size: " + childNode.nKeys);
+                //System.out.println("Key to insert: " + key);
+                //This takes into account if the childNode is to be inserted into the far left
+                if(childNode.key[0].compareTo(key) > 0 && i == 0){
+                    insert(key, ref, childNode, n);
+                    inserted = true;
+                }
+                //This takes into account if the childNode is to be inserted somewhere in the middle
+                if(childNode.key[0].compareTo(key) < 0 && childNode.key[(childNode.nKeys)-1].compareTo(key) > 0){
+                    insert(key, ref, childNode, n);
+                    inserted = true;
+                }
+                //This takes into account if the childNode is to be inserted into the far right
+                if(childNode.key[(childNode.nKeys)-1].compareTo(key) < 0 && i == n.nKeys){
+                    insert(key, ref, childNode, n);
+                    inserted = true;
+                }
+                if(inserted == true){
+                    break;
+                }
+                
+            }
+            
+        }
+        if(n.isLeaf == true){
+            System.out.println("KEY TO INSERT: " + key);
+            if (n.nKeys < ORDER - 1) {
+                boolean insertedSafely = false;
+                for (int i = 0; i < n.nKeys; i++) {
+                    K k_i = n.key [i];
+                    if (key.compareTo (k_i) < 0) {
+                        wedge (key, ref, n, i);
+                        insertedSafely = true;
+                        i = n.nKeys;
+                    } else if (key.equals (k_i)) {
+                        out.println ("BpTree:insert: attempt to insert duplicate key = " + key);
+                    } // if
+                } // for
+                if(insertedSafely == false){
+                    wedge (key, ref, n, n.nKeys);
+                }
+            } 
+            else {
+                Node newNode = split (key, ref, n);
 
+                
+                if(p == null && rootBeenSplit == false){
+                    root = newNode;
+                    rootBeenSplit = true;
+                    
+                }
+                Node currentNode = newNode;
+                while(insertStack.empty() == false){
+                    Node parent = (Node) insertStack.pop();
+                    if(parent.nKeys < ORDER - 1){
+                        wedgeNonLeaves(currentNode.key[0], (V)currentNode.ref[0], (V)currentNode.ref[1], parent);
+                        break;
+                    }
+                    else{
+                        parent = innerSplit(currentNode, parent);
+                        if(insertStack.empty() == true){
+                            root = parent;
+                        }
+                        else{
+                            currentNode = parent;
+                        }
+                    }
+                }
+
+            }
         } // if
+        
     } // insert
 
+    /*private void insertUp(K key, Node parent, Node n){
+        if(parent.nKeys  < ORDER -1){
+            boolean spotFound = false;
+            for(int i = 0; i < parent.nKeys-1; i++){
+                if(spotFound == false){
+                    if(parent.)
+                }
+            }
+        }
+    }*/
+    
+    private void wedgeNonLeaves (K key, Object leftRef, Object rightRef, Node n){
+           /*System.out.println("Printing Wedge!");
+            for(int i = 0; i < n.nKeys; i++){
+                System.out.println("CURRENT KEYS: " + n.key[i]);
+            }*/
+            int wedgePosition = 0;
+            for(int i = 0; i < n.nKeys;i++){
+                if(key.compareTo(n.key[i]) < 0 && i == 0){
+                    wedgePosition = 0;
+                    break;
+                }
+                if(i != n.nKeys -1){
+                    if(key.compareTo(n.key[i]) > 0 && key.compareTo(n.key[i+1]) < 0){
+
+                        wedgePosition = i;
+                        break;
+                    }
+                }
+                if(key.compareTo(n.key[i]) > 0 && i == n.nKeys-1){
+                    wedgePosition = n.nKeys;
+                }
+                
+            }
+            if(wedgePosition == 0){
+                wedgePosition = 3;
+            }
+            System.out.println(wedgePosition);
+            for(int j = n.nKeys; j > wedgePosition; j--){
+                n.key[j] = n.key[j-1];
+                n.ref[j+1] = n.ref[j];
+                n.ref[j] = n.ref[j-1];
+            }
+            n.key[wedgePosition] = key;
+            n.ref[wedgePosition+1] = rightRef;
+            n.ref[wedgePosition] = leftRef;
+            n.nKeys++;
+            
+            System.out.println("PRINTING FROM WEDGE: ");
+            print(root, 0);
+        
+    }
     /***************************************************************************
      * Wedge the key-ref pair into node n.
      * @param key  the key to insert
@@ -694,6 +804,7 @@ public class BpTree <K extends Comparable <K>, V>
      */
     private void wedge (K key, V ref, Node n, int i)
     {
+        print(n,0);
         for (int j = n.nKeys; j > i; j--) {
             n.key [j] = n.key [j - 1];
             n.ref [j] = n.ref [j - 1];
@@ -703,17 +814,140 @@ public class BpTree <K extends Comparable <K>, V>
         n.nKeys++;
     } // wedge
 
+    
+    
+    
     /***************************************************************************
      * Split node n and return the newly created node.
      * @param key  the key to insert
      * @param ref  the value/node to insert
      * @param n    the current node
      */
+    private Node innerSplit(Node n, Node p){
+        System.out.print("NODE TO SPLIT: ");
+        for(int i = 0; i < p.nKeys; i++){
+            System.out.print(" " + p.key[0]);
+        }
+        System.out.println("");
+        
+        Node parent = new Node(false);
+
+        Node leftChild = new Node(false);
+        Node rightChild = new Node(false);
+        
+        int splitPosition = 0;
+        for(int i = 0; i < n.nKeys - 1;i++){
+            
+            if(n.key[0].compareTo(p.key[i]) > 0 && n.key[0].compareTo(p.key[i+1]) < 0){
+                
+                splitPosition = i;
+                break;
+            }
+        }
+        if(splitPosition == 0){
+            splitPosition = 4;
+        }
+        for(int i = 0; i < 2; i++){
+            if(splitPosition == i){
+                leftChild.key[i] = n.key[0];
+                leftChild.ref[i] = n.ref[0];
+                leftChild.ref[i+1] = n.ref[1];
+                leftChild.nKeys++;
+                i++;
+                if(i < 2){
+                    leftChild.key[i] = p.key[i-1];
+                    leftChild.ref[i] = p.ref[i-1];
+                    //leftChild.ref[i+1] = p.ref[i];
+                    leftChild.nKeys++;
+                }
+                else{
+                    rightChild.key[0] = p.key[i-1];
+                    rightChild.ref[0] = p.ref[i-1];
+                    rightChild.ref[1] = p.ref[i];
+                    rightChild.nKeys++;
+                }
+            }
+            else{
+                leftChild.key[i] = p.key[i];
+                leftChild.ref[i] = p.ref[i];
+                leftChild.ref[i+1] = p.ref[i+1];
+                leftChild.nKeys++;
+            }
+        }
+            int j = 2;
+            for(int i = rightChild.nKeys; i < 4; i++){
+                /*if(splitPosition == j){
+                    rightChild.key[i] = n.key[0];
+                    rightChild.ref[i] = n.ref[0];
+                    rightChild.ref[i+1] = n.ref[1];
+                    rightChild.nKeys++;
+                    i++;
+                }
+                else{*/
+                    rightChild.key[i] = p.key[i];
+                    rightChild.ref[i] = p.ref[i];
+                    rightChild.ref[i+1] = p.ref[i];
+                    rightChild.nKeys++;
+                //}
+                j++;
+
+            }
+            if(splitPosition > 1){
+                for(int i = rightChild.nKeys; i > splitPosition; i--){
+                    rightChild.key[i] = rightChild.key[i+1];
+                    rightChild.ref[i+1] = rightChild.ref[i+2];
+                    rightChild.ref[i] = rightChild.ref[i+1];
+                }
+                rightChild.key[splitPosition-2] = n.key[0];
+                rightChild.ref[splitPosition-2] = n.ref[0];
+                rightChild.ref[splitPosition-1] = n.ref[1];
+            }
+                    //Node currentChild = rightChild;
+        
+            
+
+            //System.out.println("NODE WERE TRYING TO SPLIT: ");
+            /*for(int i = 0; i < n.nKeys; i++){
+                System.out.print(n.key[i] + " ");
+            }
+            System.out.println("");*/
+            leftChild.ref[2] = rightChild.ref[0];
+            /*while(currentChild.isLeaf!=true){
+                currentChild = (Node)currentChild.ref[0];
+            }*/
+            parent.key[0] = rightChild.key[0];
+            for(int i = 0; i < 2; i++){
+                System.out.println("GOT HERE TWICE RIGHT? ");
+                rightChild.key[i] = rightChild.key[i+1];
+                rightChild.ref[i] = rightChild.ref[i+1];
+            }
+            rightChild.ref[1] = rightChild.ref[2];
+            rightChild.ref[2] = rightChild.ref[3];
+            rightChild.nKeys--;
+            
+            
+            parent.ref[0] = leftChild;
+            parent.ref[1] = rightChild;
+            parent.nKeys++;
+            System.out.println("PARENT KEY: " + parent.key[0]);
+            
+            
+        
+        return parent;
+    }
+    
+    
     private Node split (K key, V ref, Node n)
     {
-       Node parent = new Node(false);
-        Node leftChild = new Node(true);
-        Node rightChild = new Node(true);
+        
+        Node parent = new Node(false);
+        boolean childLeaf = true;
+        if(n.isLeaf == false){
+            childLeaf = false;
+        }
+        Node leftChild = new Node(childLeaf);
+        Node rightChild = new Node(childLeaf);
+
         int splitPosition = 0;
         for(int i = 0; i < n.nKeys - 1;i++){
             
@@ -726,65 +960,89 @@ public class BpTree <K extends Comparable <K>, V>
         if(splitPosition == 0){
             splitPosition = 4;
         }
-        for(int i = 0; i < 2; i++){
-            if(splitPosition == i){
-                leftChild.key[i] = key;
-                leftChild.ref[i] = ref;
-                leftChild.nKeys++;
-                i++;
-                if(i < 2){
-                    leftChild.key[i] = n.key[i-1];
-                    leftChild.ref[i] = n.ref[i-1];
+        
+        
+            for(int i = 0; i < 2; i++){
+                if(splitPosition == i){
+                    leftChild.key[i] = n.key[0];
+                    leftChild.ref[i] = n.ref[0];
                     leftChild.nKeys++;
+                    i++;
+                    if(i < 2){
+                        leftChild.key[i] = n.key[i-1];
+                        leftChild.ref[i] = n.ref[i-1];
+                        leftChild.nKeys++;
+                    }
+                    else{
+                        rightChild.key[0] = n.key[i-1];
+                        rightChild.ref[0] = n.ref[i-1];
+                        rightChild.nKeys++;
+                    }
                 }
                 else{
-                    rightChild.key[0] = n.key[i-1];
-                    rightChild.ref[0] = n.ref[i-1];
-                    rightChild.nKeys++;
+                    leftChild.key[i] = n.key[i];
+                    leftChild.ref[i] = n.ref[i];
+                    leftChild.nKeys++;
                 }
             }
-            else{
-                leftChild.key[i] = n.key[i];
-                leftChild.ref[i] = n.ref[i];
-                leftChild.nKeys++;
+            int j = 2;
+            for(int i = rightChild.nKeys; i < 4; i++){
+                if(splitPosition == j){
+                    rightChild.key[i] = key;
+                    rightChild.ref[i] = ref;
+                    rightChild.nKeys++;
+                    i++;
+                }
+                else{
+                    rightChild.key[i] = n.key[j];
+                    rightChild.ref[i] = n.ref[j];
+                    rightChild.nKeys++;
+                }
+                j++;
+
             }
-        }
-        int j = 2;
-        for(int i = rightChild.nKeys; i < 4; i++){
-            if(splitPosition == j){
-                rightChild.key[i] = key;
-                rightChild.ref[i] = ref;
-                rightChild.nKeys++;
-                i++;
+        
+  
+        
+        
+        
+        //Node currentChild = rightChild;
+        //if(rightChild.isLeaf == true){
+            parent.key[0] = rightChild.key[0];
+        /*}
+        else{
+            System.out.println("NODE WERE TRYING TO SPLIT: ");
+            for(int i = 0; i < n.nKeys; i++){
+                System.out.print(n.key[i] + " ");
             }
-            else{
-                rightChild.key[i] = n.key[j];
-                rightChild.ref[i] = n.ref[j];
-                rightChild.nKeys++;
+            System.out.println("");
+            leftChild.ref[2] = rightChild.ref[0];
+            while(currentChild.isLeaf!=true){
+                currentChild = (Node)currentChild.ref[0];
             }
-            j++;
+            parent.key[0] = rightChild.key[0];
+            for(int i = 0; i < 2; i++){
+                System.out.println("GOT HERE TWICE RIGHT? ");
+                rightChild.key[i] = rightChild.key[i+1];
+                rightChild.ref[i] = rightChild.ref[i+1];
+            }
+            rightChild.ref[2] = rightChild.ref[3];
+            rightChild.ref[3] = rightChild.ref[4];
+            rightChild.nKeys--;
             
-        }
-        parent.key[0] = rightChild.key[0];
+            
+            
+           
+        }*/
         parent.ref[0] = leftChild;
         parent.ref[1] = rightChild;
         parent.nKeys++;
-        
-        /*System.out.println("PARENT KEYS");
-        for(int i = 0; i < parent.nKeys; i++){
-            System.out.println(parent.key[i]);
-         }
-        System.out.println("LEFT CHILD KEYS");
-        for(int i = 0; i < leftChild.nKeys; i++){
-            System.out.println(leftChild.key[i]);
-        }
-        System.out.println("RIGHT CHILD KEYS");
-        for(int i = 0; i < rightChild.nKeys; i++){
-            System.out.println(rightChild.key[i]);
-        }*/
+
         
         
         return parent;
+        
+        
     } // split
 
     /***************************************************************************
