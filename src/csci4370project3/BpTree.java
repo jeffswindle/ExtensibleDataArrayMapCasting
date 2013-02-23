@@ -156,10 +156,22 @@ public class BpTree <K extends Comparable <K>, V>
      */
     public K lastKey () 
     {
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
-
+	
+        if( this.root.isLeaf ){
+            return this.root.key[this.root.nKeys];
+        }
+        else{
+            
+            Node tempNode = this.root;
+            
+            while( !tempNode.isLeaf ){
+                tempNode = (Node)tempNode.ref[tempNode.nKeys];
+            }
+            
+            return tempNode.key[tempNode.nKeys];
+            
+        }
+		
         return null;
     } // lastKey
 
