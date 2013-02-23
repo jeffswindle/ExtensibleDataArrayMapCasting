@@ -93,7 +93,8 @@ public class LinHash <K, V>
     {
         //Set <Map.Entry <K, V>> enSet = new HashSet <> ();
         Map<K, V> mp = new HashMap<>();
-        
+         
+        //Go through the hTable and get all key/value pairs into a map
         for( int i = 0 ; i < hTable.size() ; i++ ){
             
             for( int j = 0 ; j < hTable.get(i).nKeys ; j++ ){
@@ -102,6 +103,7 @@ public class LinHash <K, V>
             
         }//for
         
+        //Put the map into a set for return value
         Set <Map.Entry <K, V>> enSet = mp.entrySet();
             
         return enSet;
@@ -114,18 +116,31 @@ public class LinHash <K, V>
      */
     public V get (Object key)
     {
+        //Hash the key
         int keyInt = h (key);
         
+        //Convert the hash to a string of bits
         String bin = Integer.toBinaryString(keyInt);
         
+        //Value to maintain position in the hash table
         int position = 0;
+        //Value to maintain the size of the hash table
         int lastBucketPosition = hTable.size();
+        //Number of current bits to compare
         int numOfBits = 2;
         
+        //While in the hash table
         while( position < lastBucketPosition ){
             
+            //While position is less than the number of positions for a bit length
+            //For example if numOfBits is 2 position will iterate 4 times( 00,01,10,11 )
+            //If numOfBits is 3 is will iterate 8 times ( 000,001,010,011,100,101,110,111 )
             while( position / Math.pow(2, numOfBits) < 1 ){
 
+                //If your bit string for the key to find is not at least the number
+                //of bits, prepend 0's until you reach the numOfBits. This 
+                //will allow for the substring to consistently pull the right
+                //amount of characters out of the string
                 if( bin.length() < numOfBits ){
                     String prepend = "";
                     for( int i = 0 ; i < numOfBits - bin.length() ; i++ ){
@@ -134,8 +149,11 @@ public class LinHash <K, V>
                     bin = prepend + bin;
                 }
                 
+                //If the position bit string is not at least the number
+                //of bits, prepend 0's until you reach the numOfBits. This 
+                //will allow for the substring to consistently pull the right
+                //amount of characters out of the string
                 String rowString = Integer.toBinaryString(position);
-                
                 if( rowString.length() < numOfBits ){
                     String prepend = "";
                     for( int i = 0 ; i < numOfBits - rowString.length() ; i++ ){
@@ -144,9 +162,15 @@ public class LinHash <K, V>
                     rowString = prepend + rowString;
                 }
                            
+                //Generate substrings from the key and position based on the numOfBits
+                //value and compare them
                 if( bin.substring(bin.length()-numOfBits).equals( rowString.substring(rowString.length()-numOfBits ) ) ){
+                    //If the values match iterate through all elements in the 
+                    //current bucket and see if they key passed matches
+                    //the key in the bucket
                     for( int i = 0 ; i < hTable.get(position).nKeys ; i++ ){
                         if( hTable.get(position).key[i] == key ){
+                            //If the keys match, return the value from the pair
                             return hTable.get(position).value[i];
                         }//if
                     }//for
@@ -157,8 +181,11 @@ public class LinHash <K, V>
                 
             }
             
+            //Increase the number of bits to compare
             numOfBits++;
         }
+        
+        //If no match is found return null.
         return null;
     } // get
 
@@ -272,14 +299,18 @@ public class LinHash <K, V>
         out.println ("Hash Table (Linear Hashing)");
         out.println ("-------------------------------------------");
         
+        //Use the entry set method and generate a set of all key/value pairs
+        //in the hash table
         Set <Map.Entry <K, V>> linSet = this.entrySet();
         Iterator itr = linSet.iterator();
         
+        //Use an iterator over the set to get the key/hash/value pairs for each bucket
+        //Print them out per bucket
         for( int i = 0 ; i < hTable.size() ; i++ ){
             System.out.println("Bucket " + i + ":");
             for( int j = 0 ; j < hTable.get(i).nKeys ; j++ ){
                 Map.Entry ent = (Map.Entry<K, V>) itr.next();
-                System.out.println( "   Key: " + ent.getKey().hashCode() + " | Value: " + ent.getValue() );
+                System.out.println( "   Key: " + ent.getKey() +  " | Hash: " + h( ent.getKey() )  + " | Value: " + ent.getValue() );
             }
         }
 

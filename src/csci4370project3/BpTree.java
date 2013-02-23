@@ -272,21 +272,29 @@ public class BpTree <K extends Comparable <K>, V>
      */
     public K lastKey () 
     {
-	
+        //Check if the root node is a leaf
         if( this.root.isLeaf ){
-            return this.root.key[this.root.nKeys-1];
+            //If the root node is a leaf return the last key in the node
+            return this.root.key[this.root.nKeys];
         }
+        //If the root node is not a leaf
         else{
             
+            //Create a tempNode
             Node tempNode = this.root;
             
+            //While the tempNode is a not a leaf
             while( !tempNode.isLeaf ){
-                tempNode = (Node)tempNode.ref[tempNode.nKeys-1];
+                //Set the tempNode equal to the furthest right node pointer
+                tempNode = (Node)tempNode.ref[tempNode.nKeys];
             }
             
+            //Once the tempNode is a leaf node return the key furthest to the 
+            //right in the node
             return tempNode.key[tempNode.nKeys];
             
         }
+
     } // lastKey
 
     /***************************************************************************
