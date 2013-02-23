@@ -465,18 +465,43 @@ out.println("DEBUG:: headMap: depth is " + depth);
             out.println ("key = " + i + " value = " + bpt.get (i));
         } // for
         out.println ("-------------------------------------------");
+        out.println ("First key is " + bpt.firstKey());
+        out.println ("Last key is " + bpt.lastKey());
+        out.println ("-------------------------------------------");
         out.println ("Average number of nodes accessed = " + bpt.count / (double) totKeys);
         
         out.println("--------------------------------------------");
         out.println("Testing for Submap methods: ");
-        out.println("bpt.headMap(7) : ");
-        BpTree <Integer, Integer> bpt2 = (BpTree<Integer, Integer>) bpt.headMap(7);
-        bpt2.print (bpt2.root, 0);
-        out.println("\n\nbpt.tailMap(5) : ");
-        BpTree <Integer, Integer> bpt3 = (BpTree<Integer, Integer>) bpt.tailMap(5);
-        bpt3.print (bpt3.root, 0);
-        out.println("\n\nbpt.subMap(3,11) : ");
-        BpTree <Integer, Integer> bpt4 = (BpTree<Integer, Integer>) bpt.subMap(3,11);
+        out.println("Testing headMap(): ");
+        out.println("When index is below min (empty tree): ");
+        BpTree <Integer, Integer> bpth1 = (BpTree<Integer, Integer>) bpt.headMap(0);
+        bpth1.print (bpth1.root, 0);
+        out.println("\nWhen index is above max key (original tree): ");
+        BpTree <Integer, Integer> bpth2 = (BpTree<Integer, Integer>) bpt.headMap(100);
+        bpth2.print (bpth2.root, 0);
+        out.println("\nWhen index is between min and max keys (sub tree): ");
+        BpTree <Integer, Integer> bpth3 = (BpTree<Integer, Integer>) bpt.headMap(7);
+        bpth3.print (bpth3.root, 0);
+        out.println("\n\nTesting tailMap(): ");
+        out.println("When index is below min (original tree): ");
+        BpTree <Integer, Integer> bptt1 = (BpTree<Integer, Integer>) bpt.tailMap(0);
+        bptt1.print (bptt1.root, 0);
+        out.println("\nWhen index is above max (empty tree): ");
+        BpTree <Integer, Integer> bptt2 = (BpTree<Integer, Integer>) bpt.tailMap(100);
+        bptt2.print (bptt2.root, 0);
+        out.println("\nWhen index is between min and max (sub tree): ");
+        BpTree <Integer, Integer> bptt3 = (BpTree<Integer, Integer>) bpt.tailMap(5);
+        bptt3.print (bptt3.root, 0);
+        out.println("\n\nTesting subMap(): ");
+        out.println("When index1 is below min (essentially head map): ");
+        BpTree <Integer, Integer> bpts1 = (BpTree<Integer, Integer>) bpt.subMap(0,7);
+        bpts1.print (bpts1.root, 0);
+        out.println("\nWhen index2 is above max (essentially tail map): ");
+        BpTree <Integer, Integer> bpts2 = (BpTree<Integer, Integer>) bpt.subMap(5,100);
+        bpts2.print (bpts2.root, 0);
+        out.println("\nWhen index1 is above min index2 is below max (true sub tree): ");
+        BpTree <Integer, Integer> bpts3 = (BpTree<Integer, Integer>) bpt.subMap(3,7);
+        bpts3.print (bpts3.root, 0);
     } // main
 
 } // BpTree class
