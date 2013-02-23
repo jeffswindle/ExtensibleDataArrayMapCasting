@@ -441,13 +441,50 @@ out.println("DEBUG:: headMap: depth is " + depth);
      */
     private Node split (K key, V ref, Node n)
     {
-        out.println ("split not implemented yet");
-
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
-
-        return null;
+        Node parent = new Node(false);
+        Node leftChild = new Node(true);
+        Node rightChild = new Node(true);
+        int splitPosition = 0;
+        for(int i = 0; i < n.nKeys;i++){
+            
+            if(key.compareTo(n.key[i]) > 0){
+                
+                splitPosition = i;
+                break;
+            }
+        }
+        if(splitPosition == 0){
+            splitPosition = 4;
+        }
+        for(int i = 0; i < 2; i++){
+            if(splitPosition == i){
+                leftChild.key[i] = key;
+                leftChild.ref[i] = ref;
+                i++;
+                if(i < 2){
+                    leftChild.key[i] = n.key[i-1];
+                    leftChild.ref[i] = n.ref[i-1];
+                }
+                else{
+                    rightChild.key[0] = n.key[i-1];
+                    rightChild.ref[0] = n.ref[i-1];
+                }
+            }
+        }
+        int j = 2;
+        for(int i = rightChild.nKeys; i < 4; i++){
+            if(splitPosition == j){
+                leftChild.key[i] = key;
+                leftChild.ref[i] = ref;
+                i++;
+            }
+            
+        }
+        parent.key[0] = rightChild.key[0];
+        parent.ref[0] = leftChild;
+        parent.ref[1] = rightChild;
+        
+        return parent;
     } // split
 
     /***************************************************************************
