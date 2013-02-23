@@ -96,13 +96,123 @@ public class BpTree <K extends Comparable <K>, V>
      */
     public Set <Map.Entry <K, V>> entrySet ()
     {
-        Set <Map.Entry <K, V>> enSet = new HashSet <> ();
-
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
-            
-        return enSet;
+        Set <Map.Entry <K, V>> result = new HashSet <> ();
+       
+    	//if the root is a leaf node
+    	if(this.root.isLeaf)
+    	{
+//out.println("DEBUG:: entrySet: the root is a leaf");
+    		int i = 0;
+    		//go through all the keys of the root
+    		while(i<root.nKeys)
+    		{
+    			Map.Entry<K,V> newEntry = new AbstractMap.SimpleEntry<K,V>(root.key[i], (V) root.ref[i]);
+    			//add the pair to the result set
+    			result.add(newEntry);
+    			//increment
+    			i++;
+    		}
+    	}else
+    	{
+    		//if the root is not a leaf node
+    		//find the depth of the tree
+    		int depth = 0;
+    		Node currentNode = root;
+    		while(!currentNode.isLeaf)
+    		{
+    			depth++;
+    			currentNode = (Node) currentNode.ref[0];
+    		}
+    		//begin at the root
+    		currentNode = root;
+    		//start at the root level
+    		int currentLevel = 0;
+    		//an array to store the current index of each level (pseudo-recursion here)
+    		int[] holder = new int[depth];
+//out.println("DEBUG:: entrySet: holder size = " + depth );
+    		Stack<Node> nodeHolder = new Stack<Node>();
+    		//initialize the array to an array of 0's
+    		for(int i=0;i<depth;i++){holder[i] = 0;}
+    		//starting key is root's leftmost key
+    		K currentK = root.key[0];
+    		//continue through the tree in order, until every key is found
+    		while(true)
+    		{
+    			//if we are looking at a leaf node
+    			if(currentLevel==depth)
+    			{
+    				Map.Entry<K,V> newEntry = new AbstractMap.SimpleEntry<K,V>(currentNode.key[holder[currentLevel]], (V) currentNode.ref[holder[currentLevel]]);
+    				//add the pair to the result set
+    				result.add(newEntry);
+    				//move to the next key in the node
+    				holder[currentLevel]++;
+    				//if we are done with the node, we must move up one and increment
+    				if(holder[currentLevel]>=currentNode.nKeys)
+    				{
+    					//reset the holder in case we visit this level again 
+    					holder[currentLevel] = 0;
+    					//move up
+    					currentLevel--;
+    					//get the parent Node
+    					currentNode = (Node) nodeHolder.pop();
+    					//move to the next key in the node
+    					holder[currentLevel]++;
+    					//find out what the next pointer to get will be
+    					int toGet = holder[currentLevel];
+    					//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
+    					if(!(holder[currentLevel]>=currentNode.nKeys))
+    					{
+    						//otherwise assign the next K
+    						currentK = currentNode.key[toGet];
+    					}
+    				}
+    			//if we are looking at an internal node
+    			}else
+    			{
+    				//if there are no more pointers
+    				if(holder[currentLevel]>currentNode.nKeys)
+    				{
+    					//if we are in the root, the tree is done
+    					if(currentLevel==0)
+    					{
+    						//exit and return
+    						break;
+    					//if it is a non-root internal node, move up one node and continue
+    					}else
+    					{
+    						//set the current level's index back to 0 in case we visit it again
+    						holder[currentLevel] = 0;
+    						//move up
+    						currentLevel--;
+    						//get the parent Node
+    						currentNode = (Node) nodeHolder.pop();
+    						//increment the location in the node (move to the next key)
+    						holder[currentLevel]++;
+    						//find out what the next pointer to get will be
+    						int toGet = holder[currentLevel];
+    						//if the pointer is out of bounds of the node, don't assign K and let the loop handle it during the next iteration 
+    						if(!(holder[currentLevel]>currentNode.nKeys))
+    						{
+    							//otherwise assign the next K
+    							currentK = currentNode.key[toGet];
+    						}
+    					}
+    				//if we are not done with the node yet
+    				}else
+    				{
+    					//push the current Node onto the stack to establish it as the parent
+    					nodeHolder.push(currentNode);
+    					//set the current node with the appropriate pointer
+    					currentNode = (Node) currentNode.ref[holder[currentLevel]];
+    					//move down
+    					currentLevel++;
+    					//set the current K to the appropriate key
+    					currentK = currentNode.key[holder[currentLevel]];
+    				}
+    			}
+    		}
+    	}
+        return result;
     } // entrySet
 
     /***************************************************************************
@@ -688,7 +798,18 @@ public class BpTree <K extends Comparable <K>, V>
         out.println ("Last key is " + bpt.lastKey());
         out.println ("-------------------------------------------");
         out.println ("Average number of nodes accessed = " + bpt.count / (double) totKeys);
-        
+        out.println("--------------------------------------------");
+        out.println("Testing for entrySet: ");
+        Set <Map.Entry <Integer, Integer>> mySet = new HashSet <> ();
+        mySet = bpt.entrySet();
+        out.println("Entry Set created for tree");
+        out.println("Iterating over the created set: ");
+        Iterator itr = mySet.iterator();
+        while(itr.hasNext())
+        {
+        	Map.Entry ent = (Map.Entry<Integer, Integer>) itr.next();
+        	out.println("key = " + ent.getKey() + "; value = " + ent.getValue());
+        }
         out.println("--------------------------------------------");
         out.println("Testing for Submap methods: ");
         out.println("Testing headMap(): ");
