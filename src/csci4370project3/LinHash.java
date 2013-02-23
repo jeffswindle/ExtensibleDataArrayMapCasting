@@ -131,12 +131,88 @@ public class LinHash <K, V>
      */
     public V put (K key, V value)
     {
-        int i = h (key);
+        if (key == null || value == null) {
+            return null;
+        }
 
-             //-----------------\\
-            // TO BE IMPLEMENTED \\
-           //---------------------\\
+        if( this.hTable.isEmpty() ){
+            this.hTable.add(new LinHash.Bucket());
+            this.hTable.add(new LinHash.Bucket());
+            this.hTable.add(new LinHash.Bucket());
+            this.hTable.add(new LinHash.Bucket());
+        }
+        
+        int keyInt = h (key);
+        int compareSize = 1;
+        int counter = 0;
+        while( compareSize > 0 ){
+            compareSize = hTable.size() / (int) Math.pow( 2, counter);
+            System.out.println("compareSize: " + compareSize);
+            counter++;
+            System.out.println("counter: " + counter);
+        }
+        int compared = hTable.size();
+        
+        //Convert key hash to bit string
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(keyInt);
+        String bin = Integer.toBinaryString(keyInt);
 
+        System.out.println(bin);
+        
+        while( counter > 0 ){
+            
+            if( bin.length() > Integer.toBinaryString(keyInt).length() ){
+                if( bin.substring(bin.length()-counter).toString().equals(Integer.toBinaryString(keyInt)) ){
+                   if( hTable.get(compared-1).nKeys < 4){
+                        hTable.get(compared-1).key[hTable.get(compared-1).nKeys] = key;
+                        hTable.get(compared-1).value[hTable.get(compared-1).nKeys] = value;
+                        counter = 0;
+                        insertCount++;
+                        hTable.get(compared-1).nKeys++;
+                        return null;
+                    }
+                }
+            }
+            else if( bin.length() == Integer.toBinaryString(keyInt).length() ){  
+                if( bin.equals(Integer.toBinaryString(keyInt)) ){
+                   if( hTable.get(compared-1).nKeys < 4){
+                        hTable.get(compared-1).key[hTable.get(compared-1).nKeys] = key;
+                        hTable.get(compared-1).value[hTable.get(compared-1).nKeys] = value;
+                        counter = 0;
+                        insertCount++;
+                        hTable.get(compared-1).nKeys++;
+                        return null;
+                    }
+                }
+            }
+            else{
+                String prepend = "";
+                for( int i = 0 ; i < compared - bin.length() ; i++ ){
+                    prepend += "0";
+                }
+                
+                bin = prepend + bin;
+                
+                if( bin.equals(Integer.toBinaryString(compared)) ){
+                   if( hTable.get(compared-1).nKeys < 4){
+                        hTable.get(compared-1).key[hTable.get(compared-1).nKeys] = key;
+                        hTable.get(compared-1).value[hTable.get(compared-1).nKeys] = value;
+                        counter = 0;
+                        insertCount++;
+                        hTable.get(compared-1).nKeys++;
+                        return null;
+                    }
+                }
+                
+                
+                
+            }
+            
+            compared--;
+            counter--;
+        }      
+                
         return null;
     } // put
 
@@ -156,14 +232,17 @@ public class LinHash <K, V>
     {
         out.println ("Hash Table (Linear Hashing)");
         out.println ("-------------------------------------------");
-
+        
         Set <Map.Entry <K, V>> linSet = this.entrySet();
         Iterator itr = linSet.iterator();
         
-        while( itr.hasNext() ){
-            Map.Entry ent = (Map.Entry<K, V>) itr.next();
-            System.out.println( "Key: " + ent.getKey().hashCode() + " | Value: " + ent.getValue() );
-        }    
+        for( int i = 0 ; i < hTable.size() ; i++ ){
+            System.out.println("Bucket " + i + ":");
+            for( int j = 0 ; j < hTable.get(i).nKeys ; j++ ){
+                Map.Entry ent = (Map.Entry<K, V>) itr.next();
+                System.out.println( "   Key: " + ent.getKey().hashCode() + " | Value: " + ent.getValue() );
+            }
+        }
 
         out.println ("-------------------------------------------");
     } // print
