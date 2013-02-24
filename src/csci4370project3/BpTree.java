@@ -57,7 +57,7 @@ public class BpTree <K extends Comparable <K>, V>
 
     /** The root of the B+Tree
      */
-    private final Node root;
+    private Node root;
 
     /** The counter for the number nodes accessed (for performance testing).
      */
@@ -68,7 +68,7 @@ public class BpTree <K extends Comparable <K>, V>
  */
     private int numKeys= 0;
 
-	 
+
     /***************************************************************************
      * Construct an empty B+Tree map.
      * @param _classK  the class for keys (K)
@@ -128,7 +128,7 @@ public class BpTree <K extends Comparable <K>, V>
     		//start at the root level
     		int currentLevel = 0;
     		//an array to store the current index of each level (pseudo-recursion here)
-    		int[] holder = new int[depth];
+    		int[] holder = new int[depth+1];
 //out.println("DEBUG:: entrySet: holder size = " + depth );
     		Stack<Node> nodeHolder = new Stack<Node>();
     		//initialize the array to an array of 0's
@@ -207,6 +207,7 @@ public class BpTree <K extends Comparable <K>, V>
     					//move down
     					currentLevel++;
     					//set the current K to the appropriate key
+//out.println("DEBUG:: entrySet: depth is " + depth + " and currentLevel is " + currentLevel);
     					currentK = currentNode.key[holder[currentLevel]];
     				}
     			}
@@ -234,7 +235,7 @@ public class BpTree <K extends Comparable <K>, V>
      */
     public V put (K key, V value)
     {
-        insert (key, value, root, null);
+        insert (key, value, root, null, 0);
         return null;
     } // put
 
@@ -272,29 +273,25 @@ public class BpTree <K extends Comparable <K>, V>
      */
     public K lastKey () 
     {
-        //Check if the root node is a leaf
-        if( this.root.isLeaf ){
-            //If the root node is a leaf return the last key in the node
-            return this.root.key[this.root.nKeys];
-        }
-        //If the root node is not a leaf
-        else{
-            
-            //Create a tempNode
-            Node tempNode = this.root;
-            
-            //While the tempNode is a not a leaf
-            while( !tempNode.isLeaf ){
-                //Set the tempNode equal to the furthest right node pointer
-                tempNode = (Node)tempNode.ref[tempNode.nKeys];
-            }
-            
-            //Once the tempNode is a leaf node return the key furthest to the 
-            //right in the node
-            return tempNode.key[tempNode.nKeys];
-            
-        }
-
+    	//check to see if the root is a leaf node
+    	if(root.isLeaf)
+    	{
+    		//if it is, simply return the first key in the root
+    		return(root.key[root.nKeys-1]);
+    		//if the root is not a leaf
+    	}else
+    	{
+    		//start at the root
+    		Node current = root;
+    		//while the current node is not a leaf
+    		while(!(current.isLeaf))
+    		{
+    			//move down to the leftmost child of the current node
+    			current = (Node) current.ref[current.nKeys];
+    		}
+    		//return the first key in the (now leaf) node
+    		return(current.key[current.nKeys-1]);
+    	}
     } // lastKey
 
     /***************************************************************************
@@ -343,13 +340,13 @@ public class BpTree <K extends Comparable <K>, V>
     			depth++;
     			currentNode = (Node) currentNode.ref[0];
     		}
-    		out.println("DEBUG:: headMap: depth is " + depth);
+//out.println("DEBUG:: headMap: depth is " + depth);
     		//begin at the root
     		currentNode = root;
     		//start at the root level
     		int currentLevel = 0;
     		//an array to store the current index of each level (avoiding recursion here)
-    		int[] holder = new int[depth];
+    		int[] holder = new int[depth+1];
     		Stack<Node> nodeHolder = new Stack<Node>();
     		//initialize the array to an array of 0's
     		for(int i=0;i<depth;i++){holder[i] = 0;}
@@ -443,7 +440,7 @@ public class BpTree <K extends Comparable <K>, V>
     {
     	BpTree<K, V> result = new BpTree<K, V>(classK,classV);
     	//if fromkey is greater than or equal to the lastKey 
-    	if((fromKey.compareTo(this.lastKey())>0) || (fromKey.compareTo(this.lastKey())==0))
+    	if((fromKey.compareTo(lastKey())>0) || (fromKey.compareTo(lastKey())==0))
     	{
     		//return null, there are no values to return
     		return(result);
@@ -459,7 +456,9 @@ public class BpTree <K extends Comparable <K>, V>
     			if(root.key[i].compareTo(fromKey)>0)
     			{
     				//add the pair to the result tree
+//out.print("DEBUG:: headmap: attempt to put(" + root.key[i] + "," + (V) root.ref[i] + ")   ");
     				result.put(root.key[i],(V) root.ref[i]);
+//out.println("Made it!");
     			//if the key is lesser than or equal to fromKey, there are no more keys to add
     			}else
     			{
@@ -480,13 +479,13 @@ public class BpTree <K extends Comparable <K>, V>
     			depth++;
     			currentNode = (Node) currentNode.ref[0];
     		}
-    		out.println("DEBUG:: headMap: depth is " + depth);
+//out.println("DEBUG:: headMap: depth is " + depth);
     		//begin at the root
     		currentNode = root;
     		//start at the root level
     		int currentLevel = 0;
     		//an array to store the current index of each level (avoiding recursion here)
-    		int[] holder = new int[depth];
+    		int[] holder = new int[depth+1];
     		Stack<Node> nodeHolder = new Stack<Node>();
     		//initialize the array to an array of nKeys's
     		for(int i=0;i<depth;i++)
@@ -497,7 +496,7 @@ public class BpTree <K extends Comparable <K>, V>
     		//begin at the root
     		currentNode = root;
     		//starting key is root's rightmost key
-    		K currentK = root.key[root.nKeys];
+    		K currentK = root.key[root.nKeys-1];
     		//continue through the tree in reverse order, until a smaller key is found
     		while(currentK.compareTo(fromKey)>0)
     		{
@@ -658,143 +657,120 @@ public class BpTree <K extends Comparable <K>, V>
      * @param n    the current node
      * @param p    the parent node
      */
-      private void insert (K key, V ref, Node n, Node p)
+    private void insert (K key, V ref, Node n, Node p, int level)
     {
-        System.out.println("WHAT A LOVELY TREE!");
-        //print(root, 0);
-
-        //If we are not currently dealing with a leaf.
-        if(n.isLeaf != true){
-            insertStack.push(n);
-            boolean inserted = false;
-            for(int i = 0; i < n.nKeys+1; i++){
-                Node childNode = (Node) n.ref[i];
-                //System.out.println("Child size: " + childNode.nKeys);
-                //System.out.println("Key to insert: " + key);
-                //This takes into account if the childNode is to be inserted into the far left
-                if(childNode.key[0].compareTo(key) > 0 && i == 0){
-                    insert(key, ref, childNode, n);
-                    inserted = true;
-                }
-                //This takes into account if the childNode is to be inserted somewhere in the middle
-                if(childNode.key[0].compareTo(key) < 0 && childNode.key[(childNode.nKeys)-1].compareTo(key) > 0){
-                    insert(key, ref, childNode, n);
-                    inserted = true;
-                }
-                //This takes into account if the childNode is to be inserted into the far right
-                if(childNode.key[(childNode.nKeys)-1].compareTo(key) < 0 && i == n.nKeys){
-                    insert(key, ref, childNode, n);
-                    inserted = true;
-                }
-                if(inserted == true){
-                    break;
-                }
-                
-            }
-            
-        }
-        if(n.isLeaf == true){
-            System.out.println("KEY TO INSERT: " + key);
-            if (n.nKeys < ORDER - 1) {
-                boolean insertedSafely = false;
-                for (int i = 0; i < n.nKeys; i++) {
+    	//if we are in a leaf node
+        if(n.isLeaf)
+        {
+        	//if there is room in the node
+        	if(n.nKeys < (ORDER-1))
+        	{
+        		boolean haveWedged = false;
+        		for (int i = 0; (i < n.nKeys && haveWedged==false); i++) {
                     K k_i = n.key [i];
+//out.println("DEBUG:: insert: key = " + key + ", k_i = " + k_i + ", nKeys = " + n.nKeys);
                     if (key.compareTo (k_i) < 0) {
+//out.println("DEBUG:: INSERT:less than");
                         wedge (key, ref, n, i);
-                        insertedSafely = true;
-                        i = n.nKeys;
+                        haveWedged = true;
                     } else if (key.equals (k_i)) {
                         out.println ("BpTree:insert: attempt to insert duplicate key = " + key);
+                        haveWedged = true;
                     } // if
-                } // for
-                if(insertedSafely == false){
-                    wedge (key, ref, n, n.nKeys);
-                }
-            } 
-            else {
-                Node newNode = split (key, ref, n);
-
-                
-                if(p == null && rootBeenSplit == false){
-                    root = newNode;
-                    rootBeenSplit = true;
-                    
-                }
-                Node currentNode = newNode;
-                while(insertStack.empty() == false){
-                    Node parent = (Node) insertStack.pop();
-                    if(parent.nKeys < ORDER - 1){
-                        wedgeNonLeaves(currentNode.key[0], (V)currentNode.ref[0], (V)currentNode.ref[1], parent);
-                        break;
-                    }
-                    else{
-                        parent = innerSplit(currentNode, parent);
-                        if(insertStack.empty() == true){
-                            root = parent;
-                        }
-                        else{
-                            currentNode = parent;
-                        }
-                    }
-                }
-
-            }
-        } // if
-        
+                }// for
+        		if(!haveWedged)
+        		{
+        			wedge(key,ref,n,n.nKeys);
+        		}// if
+        		return;
+        	//if there is no more room in the leaf node
+        	}else
+        	{
+        		//split the node and get a reference to the new one
+        		Node newNode = split(key,ref,n,level);
+        		//if we are at the root level
+        		if(level==0)
+        		{
+        			//simply assign the resulting node as the root and walk away 
+        			root = newNode;
+        			root.isLeaf = false;
+        			return;
+        		//if we are at a non-root leaf node and there is no more room
+        		}else
+        		{
+        			//if the new node comes before any of the keys in the old node
+        			if(newNode.key[0].compareTo(p.key[0])<0)
+        			{
+//out.println("DEBUG:: insert: node must be fused and new Node comes before all others");
+        				//iterate over the keys in the old node
+        				for(int i=p.nKeys;i>0;i--)
+        				{      					
+        					//shift them right
+        					p.key[i] = p.key[i-1];
+        					p.ref[i+1] = p.ref[i];
+//out.println("DEBUG:: insert: turn:"+i+" ref[i]="+((Node)p.ref[i]).key[0] + "; p.key[0]=" + p.key[0]);          					
+        				}
+        				//assign the first keys and refs accordingly
+        				p.key[0] = newNode.key[0];
+        				p.ref[0] = newNode.ref[0];
+        				p.ref[1] = newNode.ref[1];
+        				p.nKeys++;
+        				return;
+        			//if the newNode does not come before all the keys of the old node
+        			}else
+        			{
+//out.println("DEBUG:: insert: inserting " + key);
+        				//iterate over the keys until you find the right place to insert
+        				int i = 0;
+        				for(i=0;i<p.nKeys;i++)
+        				{
+        					//if you have found the place to insert
+        					if(newNode.key[0].compareTo(p.key[i])<0)
+        					{
+//out.println("DEBUG:: insert: " + newNode.key[0] + " was less than " + p.key[i]);
+        						//shift the ones to the right of it one slot to the right
+        						for(int j=n.nKeys;j>i;j--)
+                				{
+                					//shift them right
+                					n.key[j] = n.key[j-1];
+                					n.ref[j] = n.ref[j-1];
+                				}// for
+        						n.key[i] = newNode.key[0];
+        						n.ref[i] = newNode.ref[0];
+        						n.ref[i+1] = newNode.ref[1];
+        						n.nKeys++;
+        						return;
+        					}// if
+        				}// for
+    					//otherwise, the key belongs at the end of the node
+    					p.key[p.nKeys] = newNode.key[0];
+    					p.ref[p.nKeys] = newNode.ref[0];
+    					p.ref[p.nKeys+1] = newNode.ref[1];
+    					p.nKeys++;
+    					return;
+        			}// if
+        		}// if
+        	}// if
+        //if we are in a non-leaf node
+        }else
+        {
+        	//go through all the keys in the node
+        	for(int i=0;i<n.nKeys;i++)
+        	{
+        		//if the key to insert is less than the current key
+        		if(key.compareTo(n.key[i])<0)
+        		{
+        			//insert (recursively) the new/value pair into the appropriate Node
+        			insert(key,ref,(Node)n.ref[i],n,level+1);
+        			return;
+        		}
+        	}
+        	//otherwise, it belongs in the last Node, so insert it accordingly
+        	insert(key,ref,(Node)n.ref[n.nKeys],n,level+1);
+        	return;
+        }
     } // insert
 
-    /*private void insertUp(K key, Node parent, Node n){
-        if(parent.nKeys  < ORDER -1){
-            boolean spotFound = false;
-            for(int i = 0; i < parent.nKeys-1; i++){
-                if(spotFound == false){
-                    if(parent.)
-                }
-            }
-        }
-    }*/
-    
-    private void wedgeNonLeaves (K key, Object leftRef, Object rightRef, Node n){
-           /*System.out.println("Printing Wedge!");
-            for(int i = 0; i < n.nKeys; i++){
-                System.out.println("CURRENT KEYS: " + n.key[i]);
-            }*/
-            int wedgePosition = 0;
-            for(int i = 0; i < n.nKeys;i++){
-                if(key.compareTo(n.key[i]) < 0 && i == 0){
-                    wedgePosition = 0;
-                    break;
-                }
-                if(i != n.nKeys -1){
-                    if(key.compareTo(n.key[i]) > 0 && key.compareTo(n.key[i+1]) < 0){
-
-                        wedgePosition = i;
-                        break;
-                    }
-                }
-                if(key.compareTo(n.key[i]) > 0 && i == n.nKeys-1){
-                    wedgePosition = n.nKeys;
-                }
-                
-            }
-            if(wedgePosition == 0){
-                wedgePosition = 3;
-            }
-            System.out.println(wedgePosition);
-            for(int j = n.nKeys; j > wedgePosition; j--){
-                n.key[j] = n.key[j-1];
-                n.ref[j+1] = n.ref[j];
-                n.ref[j] = n.ref[j-1];
-            }
-            n.key[wedgePosition] = key;
-            n.ref[wedgePosition+1] = rightRef;
-            n.ref[wedgePosition] = leftRef;
-            n.nKeys++;
-            
-            System.out.println("PRINTING FROM WEDGE: ");
-            print(root, 0);
-        
-    }
     /***************************************************************************
      * Wedge the key-ref pair into node n.
      * @param key  the key to insert
@@ -804,245 +780,81 @@ public class BpTree <K extends Comparable <K>, V>
      */
     private void wedge (K key, V ref, Node n, int i)
     {
-        print(n,0);
+ //out.print("DEBUG:: wedge: wedging; ");
         for (int j = n.nKeys; j > i; j--) {
             n.key [j] = n.key [j - 1];
             n.ref [j] = n.ref [j - 1];
+//out.println("looking at position " + j);
         } // for
         n.key [i] = key;
         n.ref [i] = ref;
         n.nKeys++;
+//out.println("DEBUG:: wedge: wedged key " + key + " into position " + i);
     } // wedge
 
-    
-    
-    
     /***************************************************************************
      * Split node n and return the newly created node.
      * @param key  the key to insert
      * @param ref  the value/node to insert
      * @param n    the current node
      */
-    private Node innerSplit(Node n, Node p){
-        System.out.print("NODE TO SPLIT: ");
-        for(int i = 0; i < p.nKeys; i++){
-            System.out.print(" " + p.key[0]);
-        }
-        System.out.println("");
-        
-        Node parent = new Node(false);
-
-        Node leftChild = new Node(false);
-        Node rightChild = new Node(false);
-        
-        int splitPosition = 0;
-        for(int i = 0; i < n.nKeys - 1;i++){
-            
-            if(n.key[0].compareTo(p.key[i]) > 0 && n.key[0].compareTo(p.key[i+1]) < 0){
-                
-                splitPosition = i;
-                break;
-            }
-        }
-        if(splitPosition == 0){
-            splitPosition = 4;
-        }
-        for(int i = 0; i < 2; i++){
-            if(splitPosition == i){
-                leftChild.key[i] = n.key[0];
-                leftChild.ref[i] = n.ref[0];
-                leftChild.ref[i+1] = n.ref[1];
-                leftChild.nKeys++;
-                i++;
-                if(i < 2){
-                    leftChild.key[i] = p.key[i-1];
-                    leftChild.ref[i] = p.ref[i-1];
-                    //leftChild.ref[i+1] = p.ref[i];
-                    leftChild.nKeys++;
-                }
-                else{
-                    rightChild.key[0] = p.key[i-1];
-                    rightChild.ref[0] = p.ref[i-1];
-                    rightChild.ref[1] = p.ref[i];
-                    rightChild.nKeys++;
-                }
-            }
-            else{
-                leftChild.key[i] = p.key[i];
-                leftChild.ref[i] = p.ref[i];
-                leftChild.ref[i+1] = p.ref[i+1];
-                leftChild.nKeys++;
-            }
-        }
-            int j = 2;
-            for(int i = rightChild.nKeys; i < 4; i++){
-                /*if(splitPosition == j){
-                    rightChild.key[i] = n.key[0];
-                    rightChild.ref[i] = n.ref[0];
-                    rightChild.ref[i+1] = n.ref[1];
-                    rightChild.nKeys++;
-                    i++;
-                }
-                else{*/
-                    rightChild.key[i] = p.key[i];
-                    rightChild.ref[i] = p.ref[i];
-                    rightChild.ref[i+1] = p.ref[i];
-                    rightChild.nKeys++;
-                //}
-                j++;
-
-            }
-            if(splitPosition > 1){
-                for(int i = rightChild.nKeys; i > splitPosition; i--){
-                    rightChild.key[i] = rightChild.key[i+1];
-                    rightChild.ref[i+1] = rightChild.ref[i+2];
-                    rightChild.ref[i] = rightChild.ref[i+1];
-                }
-                rightChild.key[splitPosition-2] = n.key[0];
-                rightChild.ref[splitPosition-2] = n.ref[0];
-                rightChild.ref[splitPosition-1] = n.ref[1];
-            }
-                    //Node currentChild = rightChild;
-        
-            
-
-            //System.out.println("NODE WERE TRYING TO SPLIT: ");
-            /*for(int i = 0; i < n.nKeys; i++){
-                System.out.print(n.key[i] + " ");
-            }
-            System.out.println("");*/
-            leftChild.ref[2] = rightChild.ref[0];
-            /*while(currentChild.isLeaf!=true){
-                currentChild = (Node)currentChild.ref[0];
-            }*/
-            parent.key[0] = rightChild.key[0];
-            for(int i = 0; i < 2; i++){
-                System.out.println("GOT HERE TWICE RIGHT? ");
-                rightChild.key[i] = rightChild.key[i+1];
-                rightChild.ref[i] = rightChild.ref[i+1];
-            }
-            rightChild.ref[1] = rightChild.ref[2];
-            rightChild.ref[2] = rightChild.ref[3];
-            rightChild.nKeys--;
-            
-            
-            parent.ref[0] = leftChild;
-            parent.ref[1] = rightChild;
-            parent.nKeys++;
-            System.out.println("PARENT KEY: " + parent.key[0]);
-            
-            
-        
-        return parent;
-    }
-    
-    
-    private Node split (K key, V ref, Node n)
+    private Node split (K key, V ref, Node n, int level)
     {
-        
-        Node parent = new Node(false);
-        boolean childLeaf = true;
-        if(n.isLeaf == false){
-            childLeaf = false;
-        }
-        Node leftChild = new Node(childLeaf);
-        Node rightChild = new Node(childLeaf);
-
-        int splitPosition = 0;
-        for(int i = 0; i < n.nKeys - 1;i++){
-            
-            if(key.compareTo(n.key[i]) > 0 && key.compareTo(n.key[i+1]) < 0){
-                
-                splitPosition = i;
-                break;
-            }
-        }
-        if(splitPosition == 0){
-            splitPosition = 4;
-        }
-        
-        
-            for(int i = 0; i < 2; i++){
-                if(splitPosition == i){
-                    leftChild.key[i] = n.key[0];
-                    leftChild.ref[i] = n.ref[0];
-                    leftChild.nKeys++;
-                    i++;
-                    if(i < 2){
-                        leftChild.key[i] = n.key[i-1];
-                        leftChild.ref[i] = n.ref[i-1];
-                        leftChild.nKeys++;
-                    }
-                    else{
-                        rightChild.key[0] = n.key[i-1];
-                        rightChild.ref[0] = n.ref[i-1];
-                        rightChild.nKeys++;
-                    }
-                }
-                else{
-                    leftChild.key[i] = n.key[i];
-                    leftChild.ref[i] = n.ref[i];
-                    leftChild.nKeys++;
-                }
-            }
-            int j = 2;
-            for(int i = rightChild.nKeys; i < 4; i++){
-                if(splitPosition == j){
-                    rightChild.key[i] = key;
-                    rightChild.ref[i] = ref;
-                    rightChild.nKeys++;
-                    i++;
-                }
-                else{
-                    rightChild.key[i] = n.key[j];
-                    rightChild.ref[i] = n.ref[j];
-                    rightChild.nKeys++;
-                }
-                j++;
-
-            }
-        
-  
-        
-        
-        
-        //Node currentChild = rightChild;
-        //if(rightChild.isLeaf == true){
-            parent.key[0] = rightChild.key[0];
-        /*}
-        else{
-            System.out.println("NODE WERE TRYING TO SPLIT: ");
-            for(int i = 0; i < n.nKeys; i++){
-                System.out.print(n.key[i] + " ");
-            }
-            System.out.println("");
-            leftChild.ref[2] = rightChild.ref[0];
-            while(currentChild.isLeaf!=true){
-                currentChild = (Node)currentChild.ref[0];
-            }
-            parent.key[0] = rightChild.key[0];
-            for(int i = 0; i < 2; i++){
-                System.out.println("GOT HERE TWICE RIGHT? ");
-                rightChild.key[i] = rightChild.key[i+1];
-                rightChild.ref[i] = rightChild.ref[i+1];
-            }
-            rightChild.ref[2] = rightChild.ref[3];
-            rightChild.ref[3] = rightChild.ref[4];
-            rightChild.nKeys--;
-            
-            
-            
-           
-        }*/
-        parent.ref[0] = leftChild;
-        parent.ref[1] = rightChild;
-        parent.nKeys++;
-
-        
-        
-        return parent;
-        
-        
+    	//if we're splitting a leaf node
+    	if(n.isLeaf)
+    	{
+    		//the new node can never be a leaf (by nature of split)
+    		Node result = new Node(false);
+    		//make an array to hold all 5 keys
+    		ArrayList<K> karray = new ArrayList<K>();
+    		//and another for the value
+    		ArrayList<V> varray = new ArrayList<V>();
+    		boolean addedNew = false;
+    		//cycle through the node and add the keys in order
+    		for (int i = 0; i < n.nKeys; i++) {
+//out.println("DEBUG:: split: key[i] = " + n.key[i]);
+    			//if the new key is less than the next key
+    			if(key.compareTo(n.key[i])<0 && (!addedNew))
+    			{
+//out.println("DEBUG:: split: splitting with new value being smallest");
+    				karray.add(key);
+    				varray.add(ref);
+    				karray.add(n.key[i]);
+    				varray.add((V) n.ref[i]);
+    				addedNew = true;
+    			}else
+    			{
+    				karray.add(n.key[i]);
+    				varray.add((V) n.ref[i]);
+    			}// if
+    		}// for
+    		//if the new key is larger than all the keys already in the node
+    		if(key.compareTo(n.key[n.nKeys-1])>0)
+    		{
+    			karray.add(key);
+    			varray.add(ref);
+    		}// if
+    		//the keys should all be in order now in karray
+    		//make a new Node to be the leftchild with the same leafality as n
+    		Node leftChild = new Node(n.isLeaf);
+    		//make a new Node to be the rightchild with the same leafality as n
+    		Node rightChild = new Node(n.isLeaf);
+    		//put the appropriate values in the appropriate nodes
+    		insert((K)karray.get(0),(V)varray.get(0),leftChild,result,level);
+    		insert((K)karray.get(1),(V)varray.get(1),leftChild,result,level);
+    		insert((K)karray.get(2),(V)varray.get(2),leftChild,result,level);
+    		insert((K)karray.get(3),(V)varray.get(3),rightChild,result,level);
+    		insert((K)karray.get(4),(V)varray.get(4),rightChild,result,level);
+    		result.key[0]=(K)karray.get(2);
+    		result.nKeys++;
+    		result.ref[0] = leftChild;
+    		result.ref[1] = rightChild;
+            return(result);
+    	//if we're not splitting a leaf node
+    	}else
+    	{
+            return(null);
+    	}// if
     } // split
 
     /***************************************************************************
@@ -1052,14 +864,19 @@ public class BpTree <K extends Comparable <K>, V>
     public static void main (String [] args)
     {
         BpTree <Integer, Integer> bpt = new BpTree <> (Integer.class, Integer.class);
-        int totKeys = 10;
-        if (args.length == 1) totKeys = Integer.valueOf (args [0]);
-        for (int i = 1; i < totKeys; i += 2) bpt.put (i, i * i);
+        int totKeys = 31;
+        //if (args.length == 1) totKeys = Integer.valueOf (args [0]);
+/*        for (int i = totKeys; i > 0; i -= 2)
+        {
+out.println("inserting " + i);
+        	bpt.put (i, i * i);
+        }
+//*/        for (int i = 1; i < totKeys; i += 2) bpt.put (i, i * i);
         bpt.print (bpt.root, 0);
         for (int i = 0; i < totKeys; i++) {
             out.println ("key = " + i + " value = " + bpt.get (i));
         } // for
-        out.println ("-------------------------------------------");
+/*        out.println ("-------------------------------------------");
         out.println ("First key is " + bpt.firstKey());
         out.println ("Last key is " + bpt.lastKey());
         out.println ("-------------------------------------------");
@@ -1086,29 +903,28 @@ public class BpTree <K extends Comparable <K>, V>
         BpTree <Integer, Integer> bpth2 = (BpTree<Integer, Integer>) bpt.headMap(100);
         bpth2.print (bpth2.root, 0);
         out.println("\nWhen index is between min and max keys (sub tree): ");
-        BpTree <Integer, Integer> bpth3 = (BpTree<Integer, Integer>) bpt.headMap(7);
+        BpTree <Integer, Integer> bpth3 = (BpTree<Integer, Integer>) bpt.headMap(16);
         bpth3.print (bpth3.root, 0);
         out.println("\n\nTesting tailMap(): ");
-        out.println("When index is below min (original tree): ");
-        BpTree <Integer, Integer> bptt1 = (BpTree<Integer, Integer>) bpt.tailMap(0);
-        bptt1.print (bptt1.root, 0);
         out.println("\nWhen index is above max (empty tree): ");
         BpTree <Integer, Integer> bptt2 = (BpTree<Integer, Integer>) bpt.tailMap(100);
         bptt2.print (bptt2.root, 0);
+        out.println("When index is below min (original tree): ");
+        BpTree <Integer, Integer> bptt1 = (BpTree<Integer, Integer>) bpt.tailMap(0);
+        bptt1.print (bptt1.root, 0);
         out.println("\nWhen index is between min and max (sub tree): ");
-        BpTree <Integer, Integer> bptt3 = (BpTree<Integer, Integer>) bpt.tailMap(5);
+        BpTree <Integer, Integer> bptt3 = (BpTree<Integer, Integer>) bpt.tailMap(16);
         bptt3.print (bptt3.root, 0);
         out.println("\n\nTesting subMap(): ");
         out.println("When index1 is below min (essentially head map): ");
-        BpTree <Integer, Integer> bpts1 = (BpTree<Integer, Integer>) bpt.subMap(0,7);
+        BpTree <Integer, Integer> bpts1 = (BpTree<Integer, Integer>) bpt.subMap(0,16);
         bpts1.print (bpts1.root, 0);
         out.println("\nWhen index2 is above max (essentially tail map): ");
-        BpTree <Integer, Integer> bpts2 = (BpTree<Integer, Integer>) bpt.subMap(5,100);
+        BpTree <Integer, Integer> bpts2 = (BpTree<Integer, Integer>) bpt.subMap(16,100);
         bpts2.print (bpts2.root, 0);
         out.println("\nWhen index1 is above min index2 is below max (true sub tree): ");
-        BpTree <Integer, Integer> bpts3 = (BpTree<Integer, Integer>) bpt.subMap(3,7);
-        bpts3.print (bpts3.root, 0);
+        BpTree <Integer, Integer> bpts3 = (BpTree<Integer, Integer>) bpt.subMap(4,24);
+        bpts3.print (bpts3.root, 0);*/
     } // main
 
 } // BpTree class
-
