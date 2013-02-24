@@ -657,7 +657,7 @@ public class BpTree <K extends Comparable <K>, V>
      * @param n    the current node
      * @param p    the parent node
      */
-    private void insert (K key, V ref, Node n, Node p, int level)
+    private Node insert (K key, V ref, Node n, Node p, int level)
     {
     	//if we are in a leaf node
         if(n.isLeaf)
@@ -668,9 +668,7 @@ public class BpTree <K extends Comparable <K>, V>
         		boolean haveWedged = false;
         		for (int i = 0; (i < n.nKeys && haveWedged==false); i++) {
                     K k_i = n.key [i];
-//out.println("DEBUG:: insert: key = " + key + ", k_i = " + k_i + ", nKeys = " + n.nKeys);
                     if (key.compareTo (k_i) < 0) {
-//out.println("DEBUG:: INSERT:less than");
                         wedge (key, ref, n, i);
                         haveWedged = true;
                     } else if (key.equals (k_i)) {
@@ -682,92 +680,94 @@ public class BpTree <K extends Comparable <K>, V>
         		{
         			wedge(key,ref,n,n.nKeys);
         		}// if
-        		return;
+        		//return;
         	//if there is no more room in the leaf node
         	}else
         	{
         		//split the node and get a reference to the new one
         		Node newNode = split(key,ref,n,level);
+                        
         		//if we are at the root level
-        		if(level==0)
+        		if(level==0) 
         		{
         			//simply assign the resulting node as the root and walk away 
         			root = newNode;
         			root.isLeaf = false;
-        			return;
+        			//return;
         		//if we are at a non-root leaf node and there is no more room
         		}else
         		{
-        			//if the new node comes before any of the keys in the old node
-        			if(newNode.key[0].compareTo(p.key[0])<0)
-        			{
-//out.println("DEBUG:: insert: node must be fused and new Node comes before all others");
-        				//iterate over the keys in the old node
-        				for(int i=p.nKeys;i>0;i--)
-        				{      					
-        					//shift them right
-        					p.key[i] = p.key[i-1];
-        					p.ref[i+1] = p.ref[i];
-//out.println("DEBUG:: insert: turn:"+i+" ref[i]="+((Node)p.ref[i]).key[0] + "; p.key[0]=" + p.key[0]);          					
-        				}
-        				//assign the first keys and refs accordingly
-        				p.key[0] = newNode.key[0];
-        				p.ref[0] = newNode.ref[0];
-        				p.ref[1] = newNode.ref[1];
-        				p.nKeys++;
-        				return;
-        			//if the newNode does not come before all the keys of the old node
-        			}else
-        			{
-//out.println("DEBUG:: insert: inserting " + key);
-        				//iterate over the keys until you find the right place to insert
-        				int i = 0;
-        				for(i=0;i<p.nKeys;i++)
-        				{
-        					//if you have found the place to insert
-        					if(newNode.key[0].compareTo(p.key[i])<0)
-        					{
-//out.println("DEBUG:: insert: " + newNode.key[0] + " was less than " + p.key[i]);
-        						//shift the ones to the right of it one slot to the right
-        						for(int j=n.nKeys;j>i;j--)
-                				{
-                					//shift them right
-                					n.key[j] = n.key[j-1];
-                					n.ref[j] = n.ref[j-1];
-                				}// for
-        						n.key[i] = newNode.key[0];
-        						n.ref[i] = newNode.ref[0];
-        						n.ref[i+1] = newNode.ref[1];
-        						n.nKeys++;
-        						return;
-        					}// if
-        				}// for
-    					//otherwise, the key belongs at the end of the node
-    					p.key[p.nKeys] = newNode.key[0];
-    					p.ref[p.nKeys] = newNode.ref[0];
-    					p.ref[p.nKeys+1] = newNode.ref[1];
-    					p.nKeys++;
-    					return;
-        			}// if
-        		}// if
-        	}// if
+                            return newNode;
+                            
+                        }// if
+                }      
+        return null;
         //if we are in a non-leaf node
         }else
         {
         	//go through all the keys in the node
         	for(int i=0;i<n.nKeys;i++)
         	{
+                    
         		//if the key to insert is less than the current key
         		if(key.compareTo(n.key[i])<0)
         		{
         			//insert (recursively) the new/value pair into the appropriate Node
-        			insert(key,ref,(Node)n.ref[i],n,level+1);
-        			return;
+        			Node result = insert(key,ref,(Node)n.ref[i],n,level+1);
+                                if(result != null && n.nKeys < ORDER -1){
+                                    int position = -1;
+                                    for(int j = 0; j < n.nKeys - 1; j++){
+                                        if(n.key[j].compareTo(result.key[j]) > 0){
+                                            position = j;
+                                        }
+                                    }
+                                    if(position == -1){
+                                        position = n.nKeys;
+                                    }
+                                    wedge(result.key[0], (V)result, n, position);
+                                }
+                                else if(result != null){
+                                    Node newParent = split(result.key[0], (V)result, n, level-1);
+                                    if(level!=0){
+                                        return newParent;
+                                    }
+                                    else{
+                                        root = newParent;
+                                    }
+                                }
+        			return null;
         		}
         	}
+                
         	//otherwise, it belongs in the last Node, so insert it accordingly
-        	insert(key,ref,(Node)n.ref[n.nKeys],n,level+1);
-        	return;
+                for(int i = 0; i < n.nKeys; i++){
+                    System.out.println(n.key[i]);
+                }
+        	Node result = insert(key,ref,(Node)n.ref[n.nKeys],n,level+1);
+                if(result != null && n.nKeys < ORDER -1){
+                    int position = -1;
+                    for(int j = 0; j < n.nKeys - 1; j++){
+                        if(n.key[j].compareTo(result.key[0]) > 0){
+                            position = j;
+                        }
+                    }
+                    if(position == -1){
+                        position = n.nKeys;
+                    }
+                    wedge(result.key[0], (V)result, n, position);
+                }
+                else if(result != null){
+                    Node newParent = split(result.key[0], (V)result, n, level-1);
+                    if(level!=0){
+                        return newParent;
+                    }
+                    else{
+                        root = newParent;
+                    }
+                }
+                
+
+        	return null;
         }
     } // insert
 
@@ -780,16 +780,26 @@ public class BpTree <K extends Comparable <K>, V>
      */
     private void wedge (K key, V ref, Node n, int i)
     {
- //out.print("DEBUG:: wedge: wedging; ");
-        for (int j = n.nKeys; j > i; j--) {
-            n.key [j] = n.key [j - 1];
-            n.ref [j] = n.ref [j - 1];
-//out.println("looking at position " + j);
-        } // for
-        n.key [i] = key;
-        n.ref [i] = ref;
-        n.nKeys++;
-//out.println("DEBUG:: wedge: wedged key " + key + " into position " + i);
+        if(n.isLeaf == true){
+            for (int j = n.nKeys; j > i; j--) {
+                n.key [j] = n.key [j - 1];
+                n.ref [j] = n.ref [j - 1];
+            } // for
+            n.key [i] = key;
+            n.ref [i] = ref;
+            n.nKeys++;
+        }
+        else{
+            Node secondNode = (Node) ref;
+            for(int j = n.nKeys; j > i; j--){
+                n.key[j] = n.key[j-1];
+                n.ref[j] = n.ref[j-1];
+            }
+            n.key[i] = secondNode.key[0];
+            n.ref[i] = secondNode.ref[0];
+            n.ref[i+1] = secondNode.ref[1];
+            n.nKeys++;
+        }
     } // wedge
 
     /***************************************************************************
@@ -812,11 +822,9 @@ public class BpTree <K extends Comparable <K>, V>
     		boolean addedNew = false;
     		//cycle through the node and add the keys in order
     		for (int i = 0; i < n.nKeys; i++) {
-//out.println("DEBUG:: split: key[i] = " + n.key[i]);
     			//if the new key is less than the next key
     			if(key.compareTo(n.key[i])<0 && (!addedNew))
     			{
-//out.println("DEBUG:: split: splitting with new value being smallest");
     				karray.add(key);
     				varray.add(ref);
     				karray.add(n.key[i]);
@@ -853,7 +861,73 @@ public class BpTree <K extends Comparable <K>, V>
     	//if we're not splitting a leaf node
     	}else
     	{
-            return(null);
+            Node toInsert = (Node) ref;
+            //the new node can never be a leaf (by nature of split)
+            Node result = new Node(false);
+            //make an array to hold all 5 keys
+            ArrayList<K> karray = new ArrayList<K>();
+            //and another for the value
+            ArrayList<V> varray = new ArrayList<V>();
+            boolean addedNew = false;
+            //cycle through the node and add the keys in order
+            for (int i = 0; i < n.nKeys; i++) {
+                    //if the new key is less than the next key
+                    if(toInsert.key[0].compareTo(n.key[i])<0 && (!addedNew))
+                    {
+                            karray.add(toInsert.key[0]);
+                            varray.add((V)toInsert.ref[0]);
+                            varray.add((V)toInsert.ref[1]);
+                            karray.add(n.key[i]);
+                            varray.add((V) n.ref[i]);
+                            varray.add((V) n.ref[i+1]);
+                            addedNew = true;
+                    }
+                    //If the new node hasn't been added yet
+                    else if(addedNew == false)
+                    {
+                            karray.add(n.key[i]);
+                            varray.add((V) n.ref[i]);
+                    }
+                    //If the node has been added, we don't want it's right ref overwritten
+                    else if(addedNew == true && i < n.nKeys-1){
+                            karray.add(n.key[i]);
+                            varray.add((V) n.ref[i+1]);
+                    }else if(addedNew == true && i == n.nKeys-1){
+                            karray.add(n.key[i]);
+                    }// if
+            }// for
+            //if the new key is larger than all the keys already in the node
+            if(key.compareTo(n.key[n.nKeys-1])>0)
+            {
+                    karray.add(toInsert.key[0]);
+                    varray.add((V)toInsert.ref[0]);
+                    varray.add((V)toInsert.ref[1]);
+            }// if
+
+            //the keys should all be in order now in karray
+            //make a new Node to be the leftchild with the same leafality as n
+            Node leftChild = new Node(n.isLeaf);
+            //make a new Node to be the rightchild with the same leafality as n
+            Node rightChild = new Node(n.isLeaf);
+            //put the appropriate values in the appropriate nodes
+            for(int i = 0; i < 2; i++){
+                leftChild.key[i] = (K)karray.get(i);
+                leftChild.ref[i] = (V)varray.get(i);
+                leftChild.ref[i+1] = (V)varray.get(i+1);
+                leftChild.nKeys++;
+            }
+            for(int i = 3; i < 5; i++){
+                rightChild.key[i-3] = (K)karray.get(i);
+                rightChild.ref[i-3] = (V)varray.get(i);
+                rightChild.ref[i-2] = (V)varray.get(i+1);
+                rightChild.nKeys++;
+            }
+            
+            result.key[0]=(K)karray.get(2);
+            result.nKeys++;
+            result.ref[0] = leftChild;
+            result.ref[1] = rightChild;
+            return result;
     	}// if
     } // split
 
