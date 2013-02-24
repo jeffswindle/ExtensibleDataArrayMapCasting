@@ -650,7 +650,7 @@ public class BpTree <K extends Comparable <K>, V>
         return (n.isLeaf) ? null : find (key, (Node) n.ref [n.nKeys]);
     } // find
 
-    /***************************************************************************
+      /***************************************************************************
      * Recursive helper function for inserting a key in B+trees.
      * @param key  the key to insert
      * @param ref  the value/node to insert
@@ -717,13 +717,15 @@ public class BpTree <K extends Comparable <K>, V>
                                 if(result != null && n.nKeys < ORDER -1){
                                     int position = -1;
                                     for(int j = 0; j < n.nKeys - 1; j++){
-                                        if(n.key[j].compareTo(result.key[j]) > 0){
-                                            position = j;
+                                        if(result.key[0].compareTo(n.key[j]) > 0){
+                                            position = j+1;
                                         }
                                     }
                                     if(position == -1){
-                                        position = n.nKeys;
+                                        position = 0;
                                     }
+                                    System.out.println("GOT HERE TOO");
+                                    System.out.println(position);
                                     wedge(result.key[0], (V)result, n, position);
                                 }
                                 else if(result != null){
@@ -740,9 +742,7 @@ public class BpTree <K extends Comparable <K>, V>
         	}
                 
         	//otherwise, it belongs in the last Node, so insert it accordingly
-                for(int i = 0; i < n.nKeys; i++){
-                    System.out.println(n.key[i]);
-                }
+ 
         	Node result = insert(key,ref,(Node)n.ref[n.nKeys],n,level+1);
                 if(result != null && n.nKeys < ORDER -1){
                     int position = -1;
@@ -790,11 +790,14 @@ public class BpTree <K extends Comparable <K>, V>
             n.nKeys++;
         }
         else{
+            
+            System.out.println(i);
             Node secondNode = (Node) ref;
             for(int j = n.nKeys; j > i; j--){
                 n.key[j] = n.key[j-1];
-                n.ref[j] = n.ref[j-1];
+                n.ref[j+1] = n.ref[j];
             }
+
             n.key[i] = secondNode.key[0];
             n.ref[i] = secondNode.ref[0];
             n.ref[i+1] = secondNode.ref[1];
