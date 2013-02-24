@@ -7,8 +7,8 @@ package csci4370project3;
  */
 
 import java.io.*;
-import java.lang.reflect.Array;
 import static java.lang.System.out;
+import java.lang.reflect.Array;
 import java.util.*;
 
 /*******************************************************************************
@@ -47,7 +47,6 @@ public class BpTree <K extends Comparable <K>, V>
             nKeys  = 0;
             key    = (K []) Array.newInstance (classK, ORDER - 1);
             if (isLeaf) {
-                //ref = (V []) Array.newInstance (classV, ORDER);
                 ref = new Object [ORDER];
             } else {
                 ref = (Node []) Array.newInstance (Node.class, ORDER);
@@ -85,6 +84,7 @@ public class BpTree <K extends Comparable <K>, V>
      * Return null to use the natural order based on the key type.  This requires
      * the key type to implement Comparable.
      */
+    @Override
     public Comparator <? super K> comparator () 
     {
         return null;
@@ -93,7 +93,9 @@ public class BpTree <K extends Comparable <K>, V>
     /***************************************************************************
      * Return a set containing all the entries as pairs of keys and values.
      * @return  the set view of the map
+     * @author Woong Kim
      */
+    @Override
     public Set <Map.Entry <K, V>> entrySet ()
     {
         Set <Map.Entry <K, V>> result = new HashSet <> ();
@@ -101,12 +103,11 @@ public class BpTree <K extends Comparable <K>, V>
     	//if the root is a leaf node
     	if(this.root.isLeaf)
     	{
-//out.println("DEBUG:: entrySet: the root is a leaf");
     		int i = 0;
     		//go through all the keys of the root
     		while(i<root.nKeys)
     		{
-    			Map.Entry<K,V> newEntry = new AbstractMap.SimpleEntry<K,V>(root.key[i], (V) root.ref[i]);
+    			Map.Entry<K,V> newEntry = new AbstractMap.SimpleEntry<>(root.key[i], (V) root.ref[i]);
     			//add the pair to the result set
     			result.add(newEntry);
     			//increment
@@ -129,8 +130,7 @@ public class BpTree <K extends Comparable <K>, V>
     		int currentLevel = 0;
     		//an array to store the current index of each level (pseudo-recursion here)
     		int[] holder = new int[depth+1];
-//out.println("DEBUG:: entrySet: holder size = " + depth );
-    		Stack<Node> nodeHolder = new Stack<Node>();
+    		Stack<Node> nodeHolder = new Stack<>();
     		//initialize the array to an array of 0's
     		for(int i=0;i<depth;i++){holder[i] = 0;}
     		//starting key is root's leftmost key
@@ -141,7 +141,7 @@ public class BpTree <K extends Comparable <K>, V>
     			//if we are looking at a leaf node
     			if(currentLevel==depth)
     			{
-    				Map.Entry<K,V> newEntry = new AbstractMap.SimpleEntry<K,V>(currentNode.key[holder[currentLevel]], (V) currentNode.ref[holder[currentLevel]]);
+    				Map.Entry<K,V> newEntry = new AbstractMap.SimpleEntry<>(currentNode.key[holder[currentLevel]], (V) currentNode.ref[holder[currentLevel]]);
     				//add the pair to the result set
     				result.add(newEntry);
     				//move to the next key in the node
@@ -163,7 +163,7 @@ public class BpTree <K extends Comparable <K>, V>
     					if(!(holder[currentLevel]>=currentNode.nKeys))
     					{
     						//otherwise assign the next K
-    						currentK = currentNode.key[toGet];
+    						currentK = currentNode.key[toGet-1];
     					}
     				}
     			//if we are looking at an internal node
@@ -207,7 +207,6 @@ public class BpTree <K extends Comparable <K>, V>
     					//move down
     					currentLevel++;
     					//set the current K to the appropriate key
-//out.println("DEBUG:: entrySet: depth is " + depth + " and currentLevel is " + currentLevel);
     					currentK = currentNode.key[holder[currentLevel]];
     				}
     			}
@@ -221,6 +220,7 @@ public class BpTree <K extends Comparable <K>, V>
      * @param key  the key used for look up
      * @return  the value associated with the key
      */
+    @Override
     @SuppressWarnings("unchecked")
     public V get (Object key)
     {
@@ -233,6 +233,7 @@ public class BpTree <K extends Comparable <K>, V>
      * @param value  the value to insert
      * @return  null (not the previous value)
      */
+    @Override
     public V put (K key, V value)
     {
         insert (key, value, root, null, 0);
@@ -244,6 +245,7 @@ public class BpTree <K extends Comparable <K>, V>
      * @return  the first key in the B+Tree map.
      * @author Stephen Lago
      */
+    @Override
     public K firstKey () 
     {
            //check to see if the root is a leaf node
@@ -270,19 +272,21 @@ public class BpTree <K extends Comparable <K>, V>
     /***************************************************************************
      * Return the last (largest) key in the B+Tree map.
      * @return  the last key in the B+Tree map.
+     * @author Jeffrey Swindle
      */
+    @Override
     public K lastKey () 
     {
     	//check to see if the root is a leaf node
-    	if(root.isLeaf)
+    	if(this.root.isLeaf)
     	{
     		//if it is, simply return the first key in the root
-    		return(root.key[root.nKeys-1]);
+    		return(this.root.key[root.nKeys-1]);
     		//if the root is not a leaf
     	}else
     	{
     		//start at the root
-    		Node current = root;
+    		Node current = this.root;
     		//while the current node is not a leaf
     		while(!(current.isLeaf))
     		{
@@ -292,6 +296,7 @@ public class BpTree <K extends Comparable <K>, V>
     		//return the first key in the (now leaf) node
     		return(current.key[current.nKeys-1]);
     	}
+        
     } // lastKey
 
     /***************************************************************************
@@ -299,9 +304,10 @@ public class BpTree <K extends Comparable <K>, V>
      * @return  the submap with keys in the range [firstKey, toKey)
      * @author Stephen Lago
      */
+    @Override
    public SortedMap <K,V> headMap (K toKey)
     {
-    	BpTree<K, V> result = new BpTree<K, V>(classK,classV);
+    	BpTree<K, V> result = new BpTree<>(classK,classV);
     	//if tokey is less than or equal to the firstKey 
     	if((toKey.compareTo(this.firstKey())<0) || (toKey.compareTo(this.firstKey())==0))
     	{
@@ -340,14 +346,13 @@ public class BpTree <K extends Comparable <K>, V>
     			depth++;
     			currentNode = (Node) currentNode.ref[0];
     		}
-//out.println("DEBUG:: headMap: depth is " + depth);
     		//begin at the root
     		currentNode = root;
     		//start at the root level
     		int currentLevel = 0;
     		//an array to store the current index of each level (avoiding recursion here)
     		int[] holder = new int[depth+1];
-    		Stack<Node> nodeHolder = new Stack<Node>();
+    		Stack<Node> nodeHolder = new Stack<>();
     		//initialize the array to an array of 0's
     		for(int i=0;i<depth;i++){holder[i] = 0;}
     		//starting key is root's leftmost key
@@ -379,7 +384,7 @@ public class BpTree <K extends Comparable <K>, V>
     					if(!(holder[currentLevel]>=currentNode.nKeys))
     					{
     						//otherwise assign the next K
-    						currentK = currentNode.key[toGet];
+    						currentK = currentNode.key[toGet-1];
     					}
     				}
     				//if we are looking at an internal node
@@ -410,7 +415,7 @@ public class BpTree <K extends Comparable <K>, V>
     						if(!(holder[currentLevel]>currentNode.nKeys))
     						{
     							//otherwise assign the next K
-    							currentK = currentNode.key[toGet];
+    							currentK = currentNode.key[toGet-1];
     						}
     					}
     					//if we are not done with the node yet
@@ -436,11 +441,12 @@ public class BpTree <K extends Comparable <K>, V>
      * @return  the submap with keys in the range [fromKey, lastKey]
      * @author Stephen Lago
      */
+    @Override
     public SortedMap <K,V> tailMap (K fromKey)
     {
-    	BpTree<K, V> result = new BpTree<K, V>(classK,classV);
+    	BpTree<K, V> result = new BpTree<>(classK,classV);
     	//if fromkey is greater than or equal to the lastKey 
-    	if((fromKey.compareTo(lastKey())>0) || (fromKey.compareTo(lastKey())==0))
+    	if((fromKey.compareTo(this.lastKey())>0) || (fromKey.compareTo(this.lastKey())==0))
     	{
     		//return null, there are no values to return
     		return(result);
@@ -456,9 +462,7 @@ public class BpTree <K extends Comparable <K>, V>
     			if(root.key[i].compareTo(fromKey)>0)
     			{
     				//add the pair to the result tree
-//out.print("DEBUG:: headmap: attempt to put(" + root.key[i] + "," + (V) root.ref[i] + ")   ");
     				result.put(root.key[i],(V) root.ref[i]);
-//out.println("Made it!");
     			//if the key is lesser than or equal to fromKey, there are no more keys to add
     			}else
     			{
@@ -479,14 +483,13 @@ public class BpTree <K extends Comparable <K>, V>
     			depth++;
     			currentNode = (Node) currentNode.ref[0];
     		}
-//out.println("DEBUG:: headMap: depth is " + depth);
     		//begin at the root
     		currentNode = root;
     		//start at the root level
     		int currentLevel = 0;
     		//an array to store the current index of each level (avoiding recursion here)
     		int[] holder = new int[depth+1];
-    		Stack<Node> nodeHolder = new Stack<Node>();
+    		Stack<Node> nodeHolder = new Stack<>();
     		//initialize the array to an array of nKeys's
     		for(int i=0;i<depth;i++)
     		{
@@ -582,12 +585,18 @@ public class BpTree <K extends Comparable <K>, V>
      * @return  the submap with keys in the range [fromKey, toKey)
      * @author Stephen Lago
      */
+    @Override
     public SortedMap <K,V> subMap (K fromKey, K toKey)
     {
-    	BpTree<K, V> result = new BpTree<K, V>(classK,classV);
+    	SortedMap<K, V> result;
 
-    	result = (BpTree<K, V>) this.headMap(toKey);
+        if( fromKey.compareTo(this.firstKey())<0 ){
+            return this.tailMap(fromKey);
+        }
+        else{
+            result = (BpTree<K, V>) this.headMap(toKey);
     	result = (BpTree<K, V>) result.tailMap(fromKey);
+        }
     	
         return result;
     } // subMap
@@ -595,12 +604,12 @@ public class BpTree <K extends Comparable <K>, V>
     /***************************************************************************
      * Return the size (number of keys) in the B+Tree.
      * @return  the size of the B+Tree
+     * @Woong Kim
      */
+    @Override
     public int size ()
     {
-        int sum = 0;
-	//sum is numKeys
-             sum=numKeys;
+        int sum =numKeys;
 
         return  sum;
     
@@ -617,12 +626,18 @@ public class BpTree <K extends Comparable <K>, V>
         out.println ("BpTree");
         out.println ("-------------------------------------------");
 
-        for (int j = 0; j < level; j++) out.print ("\t");
+        for (int j = 0; j < level; j++){
+            out.print ("\t");
+        }
         out.print ("[ . ");
-        for (int i = 0; i < n.nKeys; i++) out.print (n.key [i] + " . ");
+        for (int i = 0; i < n.nKeys; i++){
+            out.print (n.key [i] + " . ");
+        }
         out.println ("]");
         if ( ! n.isLeaf) {
-            for (int i = 0; i <= n.nKeys; i++) print ((Node) n.ref [i], level + 1);
+            for (int i = 0; i <= n.nKeys; i++){
+                print ((Node) n.ref [i], level + 1);
+            }
         } // if
 
         out.println ("-------------------------------------------");
@@ -656,6 +671,7 @@ public class BpTree <K extends Comparable <K>, V>
      * @param ref  the value/node to insert
      * @param n    the current node
      * @param p    the parent node
+     * @author Nick Burlingame Stephen Lago
      */
     private Node insert (K key, V ref, Node n, Node p, int level)
     {
@@ -742,7 +758,6 @@ public class BpTree <K extends Comparable <K>, V>
         	}
                 
         	//otherwise, it belongs in the last Node, so insert it accordingly
- 
         	Node result = insert(key,ref,(Node)n.ref[n.nKeys],n,level+1);
                 if(result != null && n.nKeys < ORDER -1){
                     int position = -1;
@@ -777,6 +792,7 @@ public class BpTree <K extends Comparable <K>, V>
      * @param ref  the value/node to insert
      * @param n    the current node
      * @param i    the insertion position within node n
+     * @author Nick Burlingame
      */
     private void wedge (K key, V ref, Node n, int i)
     {
@@ -810,6 +826,7 @@ public class BpTree <K extends Comparable <K>, V>
      * @param key  the key to insert
      * @param ref  the value/node to insert
      * @param n    the current node
+     * @author Nick Burlingame
      */
     private Node split (K key, V ref, Node n, int level)
     {
@@ -819,9 +836,9 @@ public class BpTree <K extends Comparable <K>, V>
     		//the new node can never be a leaf (by nature of split)
     		Node result = new Node(false);
     		//make an array to hold all 5 keys
-    		ArrayList<K> karray = new ArrayList<K>();
+    		ArrayList<K> karray = new ArrayList<>();
     		//and another for the value
-    		ArrayList<V> varray = new ArrayList<V>();
+    		ArrayList<V> varray = new ArrayList<>();
     		boolean addedNew = false;
     		//cycle through the node and add the keys in order
     		for (int i = 0; i < n.nKeys; i++) {
@@ -868,9 +885,9 @@ public class BpTree <K extends Comparable <K>, V>
             //the new node can never be a leaf (by nature of split)
             Node result = new Node(false);
             //make an array to hold all 5 keys
-            ArrayList<K> karray = new ArrayList<K>();
+            ArrayList<K> karray = new ArrayList<>();
             //and another for the value
-            ArrayList<V> varray = new ArrayList<V>();
+            ArrayList<V> varray = new ArrayList<>();
             boolean addedNew = false;
             //cycle through the node and add the keys in order
             for (int i = 0; i < n.nKeys; i++) {
@@ -941,26 +958,22 @@ public class BpTree <K extends Comparable <K>, V>
     public static void main (String [] args)
     {
         BpTree <Integer, Integer> bpt = new BpTree <> (Integer.class, Integer.class);
-        int totKeys = 31;
-        //if (args.length == 1) totKeys = Integer.valueOf (args [0]);
-/*        for (int i = totKeys; i > 0; i -= 2)
-        {
-out.println("inserting " + i);
-        	bpt.put (i, i * i);
+        int totKeys = 50;
+        for (int i = 1; i < totKeys; i += 2) {
+            bpt.put (i, i * i);
         }
-//*/        for (int i = 1; i < totKeys; i += 2) bpt.put (i, i * i);
         bpt.print (bpt.root, 0);
         for (int i = 0; i < totKeys; i++) {
             out.println ("key = " + i + " value = " + bpt.get (i));
         } // for
-/*        out.println ("-------------------------------------------");
+        out.println ("-------------------------------------------");
         out.println ("First key is " + bpt.firstKey());
         out.println ("Last key is " + bpt.lastKey());
         out.println ("-------------------------------------------");
         out.println ("Average number of nodes accessed = " + bpt.count / (double) totKeys);
         out.println("--------------------------------------------");
         out.println("Testing for entrySet: ");
-        Set <Map.Entry <Integer, Integer>> mySet = new HashSet <> ();
+        Set <Map.Entry <Integer, Integer>> mySet;
         mySet = bpt.entrySet();
         out.println("Entry Set created for tree");
         out.println("Iterating over the created set: ");
@@ -1001,7 +1014,7 @@ out.println("inserting " + i);
         bpts2.print (bpts2.root, 0);
         out.println("\nWhen index1 is above min index2 is below max (true sub tree): ");
         BpTree <Integer, Integer> bpts3 = (BpTree<Integer, Integer>) bpt.subMap(4,24);
-        bpts3.print (bpts3.root, 0);*/
+        bpts3.print (bpts3.root, 0);
     } // main
 
 } // BpTree class

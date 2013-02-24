@@ -93,7 +93,7 @@ public class LinHash <K, V>
     /***************************************************************************
      * Return a set containing all the entries as pairs of keys and values.
      * @return  the set view of the map
-     * @author Jeffrey Swindle
+     * @author Woong Kim
      */
     @Override
     public Set <Map.Entry <K, V>> entrySet ()
