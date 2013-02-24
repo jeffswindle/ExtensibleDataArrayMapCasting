@@ -7,10 +7,9 @@ package csci4370project3;
  */
 
 import java.io.*;
-import java.lang.reflect.Array;
 import static java.lang.System.out;
+import java.lang.reflect.Array;
 import java.util.*;
-import java.nio.ByteBuffer;
 
 /*******************************************************************************
  * This class provides hash maps that use the Linear Hashing algorithm.
@@ -42,12 +41,12 @@ public class LinHash <K, V>
         V []   value;
         Bucket next;
         @SuppressWarnings("unchecked")
-        Bucket ()//Bucket n)
+        Bucket ()
         {
             nKeys = 0;
             key   = (K []) Array.newInstance (classK, SLOTS);
             value = (V []) Array.newInstance (classV, SLOTS);
-            next  = null;//n;
+            next  = null;
         } // constructor
     } // Bucket inner class
 
@@ -75,8 +74,6 @@ public class LinHash <K, V>
      * The number of items inserted into the hash table
      */
     private int insertCount = 0;
-    
-    private int level = 3;
 
     /***************************************************************************
      * Construct a hash table that uses Linear Hashing.
@@ -96,7 +93,9 @@ public class LinHash <K, V>
     /***************************************************************************
      * Return a set containing all the entries as pairs of keys and values.
      * @return  the set view of the map
+     * @author Jeffrey Swindle
      */
+    @Override
     public Set <Map.Entry <K, V>> entrySet ()
     {
         //Set <Map.Entry <K, V>> enSet = new HashSet <> ();
@@ -121,7 +120,9 @@ public class LinHash <K, V>
      * Given the key, look up the value in the hash table.
      * @param key  the key used for look up
      * @return  the value associated with the key
+     * @author Jeffrey Swindle
      */
+    @Override
     public V get (Object key)
     {
         //Hash the key
@@ -136,28 +137,28 @@ public class LinHash <K, V>
         int lastBucketPosition = hTable.size();
         //Number of current bits to compare
         int numOfBits = 2;
-        
+        //A boolean value for moving the position counter to be equal to the 
+        //binary string of the key hash
         boolean first = true;
         
         //While in the hash table
-        while( position < lastBucketPosition ){
-            
+        while( position < lastBucketPosition ){       
             //While position is less than the number of positions for a bit length
             //For example if numOfBits is 2 position will iterate 4 times( 00,01,10,11 )
             //If numOfBits is 3 is will iterate 8 times ( 000,001,010,011,100,101,110,111 )
-            while( ( position / Math.pow(2, numOfBits) < 1 ) && ( position < lastBucketPosition ) ){
+            while( ( position / Math.pow(2, numOfBits) < 1 ) && ( position < lastBucketPosition ) ){  
                 
                 //Convert the position to a binary string
-                String rowString = Integer.toBinaryString(position);
+                String rowString = Integer.toBinaryString(position); 
                 
                 //If the binary string to compare is longer than the 
                 //position string just compare the bin.length() last characters
                 //of the position string
-                if( bin.length() < rowString.length() ){
-                    
+                if( bin.length() < rowString.length() ){                    
                     //Only compare the position string - bin.length() to ignore
-                    //leader characters in the position string
-                    if( bin.equals( rowString.substring(rowString.length()-bin.length() ) ) ){
+                    //leader characters in the position string and there is more 
+                    //than one key value at the location
+                    if( bin.equals( rowString.substring(rowString.length()-bin.length() ) ) && hTable.get(position).nKeys > 0 ){
                         count++;
                         //If the values match iterate through all elements in the 
                         //current bucket and see if they key passed matches
@@ -169,27 +170,30 @@ public class LinHash <K, V>
                                 return hTable.get(position).value[i];
                             }//if
                         }//for
-                    }//if
-                    
-                }
+                    }//if  
+                }//if
                 //Otherwise, if the binary string is longer than the position
                 //string set the position and position string to be equal
                 //to the binary string and do an initial comparions
                 else if( bin.length() > rowString.length() ){
-                    
+                    //If the binary key value hash is greater than the position
+                    //set the position to the binary key value hash and update
+                    //the binary posision string
+                    //This matches up with what is done in the put method
                     if( first ){
                         int base = 2;
                         position = Integer.parseInt(bin, base);
                         rowString = Integer.toBinaryString(position);
                         first = false;
-                    }
-                    
+                    }//if
+                    //If for some reason your posistion has exceeded end of the table
+                    //return null
                     if( position >= hTable.size() ){
                         return null;
-                    }
-                    
-                    //Compare the binary and position strings directly
-                    if( bin.equals( rowString ) ){
+                    }//if
+                    //Compare the binary and position strings directly and there 
+                    //is more than one key value at the location
+                    if( bin.equals( rowString ) && hTable.get(position).nKeys > 0 ){
                         count++;
                         //If the values match iterate through all elements in the 
                         //current bucket and see if they key passed matches
@@ -200,14 +204,13 @@ public class LinHash <K, V>
                                 return hTable.get(position).value[i];
                             }//if
                         }//for
-                    }//if
-                    
-                }
+                    }//if 
+                }//if
                 //If the binary string and position string are the same length
-                //compare the two directly
+                //compare the two directly and there is more than one key value
+                //at the location
                 else{
-                    
-                    if( bin.equals( rowString ) ){
+                    if( bin.equals( rowString ) && hTable.get(position).nKeys > 0 ){
                         //If the values match iterate through all elements in the 
                         //current bucket and see if they key passed matches
                         //the key in the bucket
@@ -218,21 +221,18 @@ public class LinHash <K, V>
                                 return hTable.get(position).value[i];
                             }//if
                         }//for
-                    }//if
-                    
-                }
-
+                    }//if       
+                }//else
                 //Move through the hash table
-                position++;
-                
-            }
-            
+                position++;    
+            }//inner while
             //Increase the number of bits to compare
             numOfBits++;
-        }
+        }//outer while
         
         //If no match is found return null.
         return null;
+        
     } // get
 
     /***************************************************************************
@@ -240,13 +240,18 @@ public class LinHash <K, V>
      * @param key    the key to insert
      * @param value  the value to insert
      * @return  null (not the previous value)
+     * @author Jeffrey Swindle
      */
+    @Override
     public V put (K key, V value)
     {
+        //If the given key or value is null return null
         if (key == null || value == null) {
             return null;
         }
 
+        //If this is the first iteration of the linear hash create
+        //the four base buckets
         if( this.hTable.isEmpty() ){
             this.hTable.add(new LinHash.Bucket());
             this.hTable.add(new LinHash.Bucket());
@@ -265,17 +270,12 @@ public class LinHash <K, V>
         //Number of current bits to compare
         int numOfBits = 2;
         
-        boolean first = true;
-        
-        
         //While in the hash table
         while( position < hTable.size() ){
-            
             //While position is less than the number of positions for a bit length
             //For example if numOfBits is 2 position will iterate 4 times( 00,01,10,11 )
             //If numOfBits is 3 is will iterate 8 times ( 000,001,010,011,100,101,110,111 )
             while( position / Math.pow(2, numOfBits) < 1 ){
-                
 
                 //If your bit string for the key to find is less than two
                 //add a leading zero for comparisons since we are starting with
@@ -284,9 +284,9 @@ public class LinHash <K, V>
                     String prepend = "";
                     for( int i = 0 ; i < bin.length() ; i++ ){
                         prepend += "0";
-                    }
+                    }//for
                     bin = prepend + bin;
-                }
+                }//if
                 
                 //If the position bit string is not at least the number
                 //of bits, prepend 0's until you reach the numOfBits. This 
@@ -297,70 +297,66 @@ public class LinHash <K, V>
                     String prepend = "";
                     for( int i = 0 ; i < bin.length()-1 ; i++ ){
                         prepend += "0";
-                    }
+                    }//for
                     rowString = prepend + rowString;
-                }
+                }//if
                 
                 //Generate substrings from the key and position based the key to
                 //find and substrings of the row hashes in the db
-                if( bin.equals( rowString.substring( rowString.length() - bin.length()) ) ){
-                    
+                if( bin.equals( rowString.substring( rowString.length() - bin.length()) ) ){                 
+                    //If you need to insert into a bucket that isn't yet in the table
+                    //add new buckets 4 at a time until the desired the position is reached
                     while( position >= hTable.size() ){
-                        this.addNewBuckets(position);
-                    }
-                    
-                   // if( position < hTable.size() ){
+                        this.addNewBuckets();
+                    }//while                   
+                    //If the bucket is full create a new set of buckets
                     if( hTable.get(position).nKeys == 4 ){
-                        this.addNewBuckets(position);
-                    }
+                       this.addNewBuckets();
+                    }//if
+                    //Otherwise if the bucket is not full, insert the key
+                    //value pair into the bucket
                     else if( hTable.get(position).nKeys < 4 ){
                         hTable.get(position).key[hTable.get(position).nKeys] = key;
                         hTable.get(position).value[hTable.get(position).nKeys] = value;
                         insertCount++;
                         hTable.get(position).nKeys++;
                         return null;
-                    }
-                    
-                    }//if
-            
-           
+                    }//else if 
+                }//if 
                 //Move through the hash table
-                position++;
-                
-            }
-            
+                position++;   
+            }//inner while
             //Increase the number of bits to compare
             numOfBits++;
+            //If you need to insert into a bucket that isn't yet in the table
+            //add new buckets 4 at a time until the desired the position is reached
             while( position >= hTable.size() ){
-                this.addNewBuckets(position);
-            }
-           //position--;
-        }
+                this.addNewBuckets();
+            }//while
+        }//outer while
 
         return null;
     } // put
     
     /**
-     * Split from split variable to provided node
+     * Add four new buckets for each time called
+     * @author Jeffrey Swindle
      */
-    private void addNewBuckets( int lastNodeToSplit ){
+    private void addNewBuckets(){
         
+        //Add four buckets
         this.hTable.add(new Bucket());
         this.hTable.add(new Bucket());
         this.hTable.add(new Bucket());
         this.hTable.add(new Bucket());
         
-        //for( int i = split ; i <= lastNodeToSplit ; i++ ){
-          //  this.hTable.add(new Bucket());
-          //  split++;
-        //}
-        //level++;
     }
 
     /***************************************************************************
      * Return the size (SLOTS * number of home buckets) of the hash table. 
      * @return  the size of the hash table
      */
+    @Override
     public int size ()
     {
         return SLOTS * (mod1 + split);
@@ -368,6 +364,7 @@ public class LinHash <K, V>
 
     /***************************************************************************
      * Print the hash table.
+     * @author Jeffrey Swindle
      */
     public void print ()
     {
@@ -376,9 +373,11 @@ public class LinHash <K, V>
         
         //Go through the hTable and get all key/value pairs into a map
         for( int i = 0 ; i < hTable.size() ; i++ ){
+           //Only print the buckets that have key/value pairs in them
            if( hTable.get(i).nKeys > 0 ){
                 System.out.println("Bucket " + i + ":");
-            }
+            }//if
+            //for each bucket print all key/value pairs in that bucket
             for( int j = 0 ; j < hTable.get(i).nKeys ; j++ ){
                 System.out.println( "   Key: " + hTable.get(i).key[j] +  " | Hash: " + h( hTable.get(i).key[j] )  + " | Value: " + hTable.get(i).value[j] );
             }//for
@@ -414,17 +413,21 @@ public class LinHash <K, V>
      */
     public static void main (String [] args)
     {
-        LinHash <Integer, Integer> ht = new LinHash <> (Integer.class, Integer.class, 14);
-        int nKeys = 50;
-        if (args.length == 1) nKeys = Integer.valueOf (args [0]);
-        for (int i = 1; i < nKeys; i += 2) ht.put (i, i * i);
+        LinHash <Integer, Integer> ht = new LinHash <> (Integer.class, Integer.class, 12);
+        int nKeys = 1000;
+        if (args.length == 1){
+            nKeys = Integer.valueOf (args [0]);
+        }
+        for (int i = 1; i < nKeys; i += 2){
+            ht.put (i, i * i);
+        }
         ht.print ();
-        for (int i = 0; i < nKeys ; i++) {
+        for (int i = 1; i < nKeys ; i+=2) {
             out.println ("key = " + i + " value = " + ht.get (i));
         } // for
+        ht.print();
         out.println ("-------------------------------------------");
         out.println ("Average number of buckets accessed = " + ht.count / (double) nKeys);
-        ht.print();
     } // main
 
 } // LinHash class
