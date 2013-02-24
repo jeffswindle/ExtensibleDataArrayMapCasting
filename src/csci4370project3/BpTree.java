@@ -740,8 +740,6 @@ public class BpTree <K extends Comparable <K>, V>
                                     if(position == -1){
                                         position = 0;
                                     }
-                                    System.out.println("GOT HERE TOO");
-                                    System.out.println(position);
                                     wedge(result.key[0], (V)result, n, position);
                                 }
                                 else if(result != null){
@@ -807,7 +805,6 @@ public class BpTree <K extends Comparable <K>, V>
         }
         else{
             
-            System.out.println(i);
             Node secondNode = (Node) ref;
             for(int j = n.nKeys; j > i; j--){
                 n.key[j] = n.key[j-1];
