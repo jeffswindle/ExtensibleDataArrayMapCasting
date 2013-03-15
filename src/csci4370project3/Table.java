@@ -361,6 +361,7 @@ public class Table
         }
         //Okay, if we get to this point, the condition must be valid, carry on
         
+        boolean isNull = false;
         //First figure out how big the table will be (which should = table1 + table2 - 1)
         int thisTableSize = this.attribute.length;
         int secondTableSize = table2.attribute.length;
@@ -466,8 +467,10 @@ public class Table
                     	newTup[colCounter] = reference[col2Counter];
                     }catch(Exception e)
                     {
-                    	out.println("Sorry, join condition invalid: attribute 1 is not a foreign key to attribute 2");
-                    	return(emptyTable);
+                    	isNull = true;
+                    	break;
+                    	//out.println("Sorry, join condition invalid: attribute 1 is not a foreign key to attribute 2");
+                    	//return(emptyTable);
                     }
                     //we still have to skip the exception (join condition attribute)
                 }else
@@ -479,7 +482,8 @@ public class Table
             }
 
             //insert the resulting tuple
-            result.insert(newTup);
+            if(!isNull){result.insert(newTup);}
+            isNull = false;
 
             //increment
             tupCounter++;
