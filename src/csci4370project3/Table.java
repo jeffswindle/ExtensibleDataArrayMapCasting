@@ -73,10 +73,19 @@ public class Table
         attribute = _attribute;
         domain    = _domain;
         key       = _key;
-       // tuples    = new ArrayList <> ();                // also try FileList, see below
+        //tuples    = new ArrayList <> ();                // also try FileList, see below
         tuples    = new FileList (this, tupleSize ());
-        index     = new TreeMap <> ();                  // also try BPTreeMap, LinHash or ExtHash
+        
+        //Index with simple TreeMap
+        //index     = new TreeMap <> ();                  // also try BPTreeMap, LinHash or ExtHash
+        
+        
+        //Index with BpTree
+        KeyType keyType = new KeyType(key);
+        Class <?> myClass2 = tuples.getClass();
+        index = new BpTree(keyType.getClass(), myClass2);
     } // Table
+
 
     /***************************************************************************
      * Construct an empty table from the raw string specifications.
