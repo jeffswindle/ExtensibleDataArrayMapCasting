@@ -440,6 +440,7 @@ public class Table
             fKey[0] = newTup[firstValuePos];
             //now find the matching tuple in the second table
             int tup2Counter = -1;
+            int scout = 0;
             int[] pos = new int[1];
             pos[0] = secondValuePos;
             Comparable[] reference;
