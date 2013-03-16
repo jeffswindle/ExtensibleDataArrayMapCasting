@@ -656,7 +656,7 @@ public class BpTree <K extends Comparable <K>, V>
             K k_i = n.key [i];
             if (key.compareTo (k_i) <= 0) {
                 if (n.isLeaf) {
-                    return (key.equals (k_i)) ? (V) n.ref [i] : null;
+                    return (key.compareTo(k_i)==0) ? (V) n.ref [i] : null;
                 } else {
                     return find (key, (Node) n.ref [i]);
                 } // if
