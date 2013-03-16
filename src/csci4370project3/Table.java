@@ -58,7 +58,10 @@ public class Table
 
     /** Index into tuples (maps key to tuple).
      */
-    private final Map <KeyType, Comparable []> index;
+    //private final Map <KeyType, Comparable []> index;
+    
+    //BpTree index
+    private final BpTree <KeyType, Comparable[]> index;
 
     /***************************************************************************
      * Construct an empty table from the meta-data specifications.
@@ -81,9 +84,7 @@ public class Table
         
         
         //Index with BpTree
-        KeyType keyType = new KeyType(key);
-        Class <?> myClass2 = tuples.getClass();
-        index = new BpTree(keyType.getClass(), myClass2);
+          index = new BpTree <> (KeyType.class,Comparable[].class);
     } // Table
 
 
