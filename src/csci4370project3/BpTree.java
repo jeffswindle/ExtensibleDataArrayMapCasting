@@ -1,6 +1,7 @@
 package csci4370project3;
 
 /*******************************************************************************
+ /*******************************************************************************
  * @file BpTree.java
  *
  * @author  John Miller
@@ -95,12 +96,58 @@ public class BpTree <K extends Comparable <K>, V>
      * @return  the set view of the map
      * @author Woong Kim
      */
+     
+    @Override
+    public boolean containsKey(Object key){
+        boolean contains = false;
+        
+        V object = find((K) key, root);
+        if(object == null){
+            contains = false;
+        }
+        else{
+            contains = true;
+        }
+        return contains;
+    
+    }
+    
+    @Override
+    public boolean containsValue(Object value){
+        boolean contains = false;
+        contains = containsValueHelper(value, this.root);
+        return contains;
+    }
+    
+    private boolean containsValueHelper(Object value, Node n){
+        boolean contains = false;
+        if(!n.isLeaf){
+            for(int i = 0; i < n.nKeys+1; i++){
+                Node currentNode = (Node)n.ref[i];
+                contains = containsValueHelper(value, currentNode);
+                if(contains == true){
+                    return contains;
+                }
+            }
+        }
+        else{
+            for(int i = 0; i < n.nKeys; i++){
+                Object currentRef = n.ref[i];
+                if(currentRef.equals(value)){
+                    contains = true;
+                    return contains;
+                }
+            }
+        }
+        return contains;
+    }
+    
     @Override
     public Set <Map.Entry <K, V>> entrySet ()
     {
         Set <Map.Entry <K, V>> result = new HashSet <> ();
        
-    	//if the root is a leaf node
+           //if the root is a leaf node
     	if(this.root.isLeaf)
     	{
     		int i = 0;
@@ -237,6 +284,7 @@ public class BpTree <K extends Comparable <K>, V>
     public V put (K key, V value)
     {
         insert (key, value, root, null, 0);
+        numKeys++;
         return null;
     } // put
 
@@ -656,7 +704,7 @@ public class BpTree <K extends Comparable <K>, V>
             K k_i = n.key [i];
             if (key.compareTo (k_i) <= 0) {
                 if (n.isLeaf) {
-                    return (key.equals (k_i)) ? (V) n.ref [i] : null;
+                    return (key.compareTo(k_i)==0) ? (V) n.ref [i] : null;
                 } else {
                     return find (key, (Node) n.ref [i]);
                 } // if
@@ -934,10 +982,20 @@ public class BpTree <K extends Comparable <K>, V>
                 leftChild.nKeys++;
             }
             for(int i = 3; i < 5; i++){
-                rightChild.key[i-3] = (K)karray.get(i);
-                rightChild.ref[i-3] = (V)varray.get(i);
-                rightChild.ref[i-2] = (V)varray.get(i+1);
-                rightChild.nKeys++;
+            	if(varray.size()>4)
+            	{
+            		rightChild.key[i-3] = (K)karray.get(i);
+            		rightChild.ref[i-3] = (V)varray.get(i);
+//out.println("DEBUG:: BpTree: split: varray size = " + varray.size() + " ; trying to access " + (i+1));                
+                	rightChild.ref[i-2] = (V)varray.get(i+1);
+                	rightChild.nKeys++;
+            	}else
+            	{
+            		rightChild.key[i-3] = (K)karray.get(i-2);
+            		rightChild.ref[i-3] = (V)varray.get(i-2);            
+                	rightChild.ref[i-2] = (V)varray.get(i-1);
+                	rightChild.nKeys++;
+            	}
             }
             
             result.key[0]=(K)karray.get(2);
@@ -955,10 +1013,23 @@ public class BpTree <K extends Comparable <K>, V>
     public static void main (String [] args)
     {
         BpTree <Integer, Integer> bpt = new BpTree <> (Integer.class, Integer.class);
-        int totKeys = 50;
+        int totKeys = 5000;
         for (int i = 1; i < totKeys; i += 2) {
             bpt.put (i, i * i);
         }
+        /*for(int i = totKeys; i > 0; i-=2)
+        {
+        	bpt.put(i, i * i);
+        }*/
+/*        Random rand = new Random();
+        for(int i = 0; i < totKeys; i++)
+        {
+        	int toInsert = rand.nextInt(10000000);
+			bpt.print(bpt.root,0);
+out.println("About to insert " + toInsert);
+        	bpt.put(toInsert, toInsert*2);
+out.println("DEBUG:: BpTree: main: size = " + bpt.size());
+        }*/
         bpt.print (bpt.root, 0);
         for (int i = 0; i < totKeys; i++) {
             out.println ("key = " + i + " value = " + bpt.get (i));
