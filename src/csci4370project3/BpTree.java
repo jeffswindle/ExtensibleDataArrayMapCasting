@@ -95,6 +95,52 @@ public class BpTree <K extends Comparable <K>, V>
      * @return  the set view of the map
      * @author Woong Kim
      */
+     
+    @Override
+    public boolean containsKey(Object key){
+        boolean contains = false;
+        
+        V object = find((K) key, root);
+        if(object == null){
+            contains = false;
+        }
+        else{
+            contains = true;
+        }
+        return contains;
+    
+    }
+    
+    @Override
+    public boolean containsValue(Object value){
+        boolean contains = false;
+        contains = containsValueHelper(value, this.root);
+        return contains;
+    }
+    
+    private boolean containsValueHelper(Object value, Node n){
+        boolean contains = false;
+        if(!n.isLeaf){
+            for(int i = 0; i < n.nKeys+1; i++){
+                Node currentNode = (Node)n.ref[i];
+                contains = containsValueHelper(value, currentNode);
+                if(contains == true){
+                    return contains;
+                }
+            }
+        }
+        else{
+            for(int i = 0; i < n.nKeys; i++){
+                Object currentRef = n.ref[i];
+                if(currentRef.equals(value)){
+                    contains = true;
+                    return contains;
+                }
+            }
+        }
+        return contains;
+    }
+    
     @Override
     public Set <Map.Entry <K, V>> entrySet ()
     {
