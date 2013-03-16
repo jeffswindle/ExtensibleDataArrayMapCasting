@@ -1,4 +1,4 @@
-package csci4370project3;
+package csci4370project4;
 
 /*******************************************************************************
  * @file LinHash.java
@@ -245,6 +245,8 @@ public class LinHash <K, V>
     @Override
     public V put (K key, V value)
     {
+        
+        //System.out.println("htable size " + hTable.size());
         //If the given key or value is null return null
         if (key == null || value == null) {
             return null;
@@ -260,7 +262,7 @@ public class LinHash <K, V>
         }
         
         //Hash the key
-        int keyInt = h (key);
+        int keyInt = Math.abs(h (key));
         
         //Convert the hash to a string of bits
         String bin = Integer.toBinaryString(keyInt);
@@ -310,12 +312,13 @@ public class LinHash <K, V>
                         this.addNewBuckets();
                     }//while                   
                     //If the bucket is full create a new set of buckets
-                    if( hTable.get(position).nKeys == 4 ){
-                       this.addNewBuckets();
-                    }//if
+                    //if( hTable.get(position).nKeys == 4 ){
+                    //   this.addNewBuckets();
+                    //}//if
                     //Otherwise if the bucket is not full, insert the key
                     //value pair into the bucket
-                    else if( hTable.get(position).nKeys < 4 ){
+                    //else if( hTable.get(position).nKeys < 4 ){
+                    if( hTable.get(position).nKeys < 4 ){
                         hTable.get(position).key[hTable.get(position).nKeys] = key;
                         hTable.get(position).value[hTable.get(position).nKeys] = value;
                         insertCount++;

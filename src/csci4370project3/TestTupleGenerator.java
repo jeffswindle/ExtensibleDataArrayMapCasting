@@ -293,7 +293,7 @@ public class TestTupleGenerator
         }//for
                 
         System.out.println("\tTeaching range select - 50000 tuples");
-        for( int i = 0; i < 50 ; i++){
+        for( int i = 0; i < 3 ; i++){
             teachingInt = ran.nextInt(50000);
             startTime = System.nanoTime();
             Teaching.select ("crsCode > " + resultTest[3][teachingInt][0].toString());

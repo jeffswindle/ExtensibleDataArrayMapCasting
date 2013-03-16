@@ -1,4 +1,4 @@
-package csci4370project3;
+package csci4370project4;
 
 
 /*******************************************************************************
@@ -59,6 +59,9 @@ public class Table
     /** Index into tuples (maps key to tuple).
      */
     private final Map <KeyType, Comparable []> index;
+    //private final LinHash <Object, Object> index;
+    //private final BpTree< KeyType, Comparable[] > index;
+   
 
     /***************************************************************************
      * Construct an empty table from the meta-data specifications.
@@ -73,19 +76,12 @@ public class Table
         attribute = _attribute;
         domain    = _domain;
         key       = _key;
-        //tuples    = new ArrayList <> ();                // also try FileList, see below
-        tuples    = new FileList (this, tupleSize ());
-        
-        //Index with simple TreeMap
-        //index     = new TreeMap <> ();                  // also try BPTreeMap, LinHash or ExtHash
-        
-        
-        //Index with BpTree
-        KeyType keyType = new KeyType(key);
-        Class <?> myClass2 = tuples.getClass();
-        index = new BpTree(keyType.getClass(), myClass2);
+        tuples    = new ArrayList <> ();                // also try FileList, see below
+        //tuples    = new FileList (this, tupleSize ());
+        index     = new TreeMap <> ();
+        //index       = new BpTree<>(KeyType.class,Comparable[].class);
+        //index     = new LinHash<>(Object.class,Object.class,11);//new TreeMap <> ();                  // also try BPTreeMap, LinHash or ExtHash
     } // Table
-
 
     /***************************************************************************
      * Construct an empty table from the raw string specifications.
@@ -96,7 +92,7 @@ public class Table
     public Table (String name, String attributes, String domains, String _key)
     {
         this (name, attributes.split (" "), findClass (domains.split (" ")), _key.split(" "));
-        out.println ("DDL> create table " + name + " (" + attributes + ")");
+        //out.println ("DDL> create table " + name + " (" + attributes + ")");
     } // Table
 
     /***************************************************************************
@@ -119,7 +115,7 @@ public class Table
      */
     public Table project (String attributeList)
     {
-        out.println ("RA> " + name + ".project (" + attributeList + ")");
+        //out.println ("RA> " + name + ".project (" + attributeList + ")");
 
         String [] pAttribute = attributeList.split (" ");
         int []    colPos     = match (pAttribute);
@@ -193,7 +189,7 @@ public class Table
      */
     public Table select (String condition)
     {
-        out.println ("RA> " + name + ".select (" + condition + ")");
+        //out.println ("RA> " + name + ".select (" + condition + ")");
 
         String [] postfix = infix2postfix (condition);
         Table     result  = new Table (name + count++, attribute, domain, key);
@@ -229,7 +225,7 @@ public class Table
     public Table union (Table table2)
     {
         
-        out.println ("RA> " + name + ".union (" + table2.name + ")");
+        //out.println ("RA> " + name + ".union (" + table2.name + ")");
 	//creates the result table
         Table result = new Table (name + count++, attribute, domain, key);
         //if the two tables are incompatible, prints out the error statement
@@ -272,7 +268,7 @@ public class Table
      */
     public Table minus (Table table2)
     {
-        out.println ("RA> " + name + ".minus (" + table2.name + ")");
+        //out.println ("RA> " + name + ".minus (" + table2.name + ")");
         //Ensure the tables are compatible, otherwise return a copy of table1
         if(!(this.compatible(table2)))
         {
@@ -445,7 +441,8 @@ public class Table
             Comparable[] reference;
             //Comparable[] reference = new Comparable[1];
             try{
-            	reference = table2.index.get(new KeyType(fKey));
+                //reference = table2.index.get(new KeyType(fKey));
+            	reference = (Comparable[])table2.index.get(new KeyType(fKey));
             }catch(java.lang.ClassCastException e)
             {
             	out.println("Sorry, join conditions invalid: attribute 2 is not primary key ");
@@ -502,7 +499,7 @@ public class Table
      */
     public boolean insert (Comparable [] tup)
     {
-        out.println ("DML> insert into " + name + " values ( " + Arrays.toString (tup) + " )");
+        //out.println ("DML> insert into " + name + " values ( " + Arrays.toString (tup) + " )");
 
         if (typeCheck (tup, domain)) {
             tuples.add (tup);
