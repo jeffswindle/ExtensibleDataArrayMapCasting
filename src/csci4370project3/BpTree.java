@@ -871,9 +871,9 @@ public class BpTree <K extends Comparable <K>, V>
      * @param n    the current node
      * @author Nick Burlingame
      */
-    private Node split (K key, V ref, Node n, int level)
+     private Node split (K key, V ref, Node n, int level)
     {
-    	//if we're splitting a leaf node
+           //if we're splitting a leaf node
     	if(n.isLeaf)
     	{
     		//the new node can never be a leaf (by nature of split)
@@ -900,7 +900,7 @@ public class BpTree <K extends Comparable <K>, V>
     			}// if
     		}// for
     		//if the new key is larger than all the keys already in the node
-    		if(key.compareTo(n.key[n.nKeys-1])>0)
+    		if(key.compareTo(n.key[n.nKeys-1])>0 || key.compareTo(n.key[n.nKeys-1]) == 0)
     		{
     			karray.add(key);
     			varray.add(ref);
@@ -960,7 +960,7 @@ public class BpTree <K extends Comparable <K>, V>
                     }// if
             }// for
             //if the new key is larger than all the keys already in the node
-            if(key.compareTo(n.key[n.nKeys-1])>0)
+            if(key.compareTo(n.key[n.nKeys-1])>0 || key.compareTo(n.key[n.nKeys-1]) == 0)
             {
                     karray.add(toInsert.key[0]);
                     varray.add((V)toInsert.ref[0]);
