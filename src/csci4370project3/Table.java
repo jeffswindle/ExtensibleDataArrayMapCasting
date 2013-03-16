@@ -445,6 +445,18 @@ public class Table
             Comparable[] reference;
             //Comparable[] reference = new Comparable[1];
             try{
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////FOR NESTED LOOP JOIN////////////////////////////////////////
+//            	for(int j=0;j<table2.tuples.size();j++)                     	//
+//            	{							    	//
+//            		Comparable[] currentTup = table2.tuples.get(j);     	//
+//           		if(fKey[0].compareTo(currentTup[secondValuePos])==0)	//
+//            		{						    	//
+//            			scout = currentTup.length;		    	//
+//            		}							//
+//           	}								//
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
             	reference = table2.index.get(new KeyType(fKey));
             }catch(java.lang.ClassCastException e)
             {
