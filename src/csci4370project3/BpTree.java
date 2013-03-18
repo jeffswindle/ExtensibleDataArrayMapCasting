@@ -1,4 +1,4 @@
-package csci4370project3;
+package csci4370project4;
 
 /*******************************************************************************
  * @file BpTree.java
@@ -95,6 +95,52 @@ public class BpTree <K extends Comparable <K>, V>
      * @return  the set view of the map
      * @author Woong Kim
      */
+     
+    @Override
+    public boolean containsKey(Object key){
+        boolean contains = false;
+        
+        V object = find((K) key, root);
+        if(object == null){
+            contains = false;
+        }
+        else{
+            contains = true;
+        }
+        return contains;
+    
+    }
+    
+    @Override
+    public boolean containsValue(Object value){
+        boolean contains = false;
+        contains = containsValueHelper(value, this.root);
+        return contains;
+    }
+    
+    private boolean containsValueHelper(Object value, Node n){
+        boolean contains = false;
+        if(!n.isLeaf){
+            for(int i = 0; i < n.nKeys+1; i++){
+                Node currentNode = (Node)n.ref[i];
+                contains = containsValueHelper(value, currentNode);
+                if(contains == true){
+                    return contains;
+                }
+            }
+        }
+        else{
+            for(int i = 0; i < n.nKeys; i++){
+                Object currentRef = n.ref[i];
+                if(currentRef.equals(value)){
+                    contains = true;
+                    return contains;
+                }
+            }
+        }
+        return contains;
+    }
+    
     @Override
     public Set <Map.Entry <K, V>> entrySet ()
     {
@@ -642,6 +688,36 @@ public class BpTree <K extends Comparable <K>, V>
 
         out.println ("-------------------------------------------");
     } // print
+    
+    /***************************************************************************
+     * Print the B+Tree using a pre-order traveral and indenting each level.
+     * @param n      the current node to print
+     * @param level  the current level of the B+Tree
+     */
+    @SuppressWarnings("unchecked")
+    public void print ()
+    {
+        Node n = this.root;
+        int level = 0;
+        out.println ("BpTree");
+        out.println ("-------------------------------------------");
+
+        for (int j = 0; j < level; j++){
+            out.print ("\t");
+        }
+        out.print ("[ . ");
+        for (int i = 0; i < n.nKeys; i++){
+            out.print (n.key [i] + " . ");
+        }
+        out.println ("]");
+        if ( ! n.isLeaf) {
+            for (int i = 0; i <= n.nKeys; i++){
+                print ((Node) n.ref [i], level + 1);
+            }
+        } // if
+
+        out.println ("-------------------------------------------");
+    } // print
 
     /***************************************************************************
      * Recursive helper function for finding a key in B+trees.
@@ -656,7 +732,7 @@ public class BpTree <K extends Comparable <K>, V>
             K k_i = n.key [i];
             if (key.compareTo (k_i) <= 0) {
                 if (n.isLeaf) {
-                    return (key.equals (k_i)) ? (V) n.ref [i] : null;
+                    return (key.compareTo(k_i)==0) ? (V) n.ref [i] : null;
                 } else {
                     return find (key, (Node) n.ref [i]);
                 } // if
@@ -825,9 +901,9 @@ public class BpTree <K extends Comparable <K>, V>
      * @param n    the current node
      * @author Nick Burlingame
      */
-    private Node split (K key, V ref, Node n, int level)
+     private Node split (K key, V ref, Node n, int level)
     {
-    	//if we're splitting a leaf node
+           //if we're splitting a leaf node
     	if(n.isLeaf)
     	{
     		//the new node can never be a leaf (by nature of split)
@@ -854,7 +930,7 @@ public class BpTree <K extends Comparable <K>, V>
     			}// if
     		}// for
     		//if the new key is larger than all the keys already in the node
-    		if(key.compareTo(n.key[n.nKeys-1])>0)
+    		if(key.compareTo(n.key[n.nKeys-1])>0 || key.compareTo(n.key[n.nKeys-1]) == 0)
     		{
     			karray.add(key);
     			varray.add(ref);
@@ -914,7 +990,7 @@ public class BpTree <K extends Comparable <K>, V>
                     }// if
             }// for
             //if the new key is larger than all the keys already in the node
-            if(key.compareTo(n.key[n.nKeys-1])>0)
+            if(key.compareTo(n.key[n.nKeys-1])>0 || key.compareTo(n.key[n.nKeys-1]) == 0)
             {
                     karray.add(toInsert.key[0]);
                     varray.add((V)toInsert.ref[0]);
@@ -1015,3 +1091,4 @@ public class BpTree <K extends Comparable <K>, V>
     } // main
 
 } // BpTree class
+
