@@ -117,14 +117,14 @@ public class TestTupleGenerator
         //Insert tuples from Student schema random generation ( 10000 )
         for (int j = 0; j < resultTest [0].length; j++) {
             
-            System.out.println ("Inserting Student " + j);
+            //System.out.println ("Inserting Student " + j);
 
             Student.insert(resultTest[0][counter]);
                     
             counter++;
 
         } // for
-        
+        /*
         System.out.println("Inserting tuples in Professor Table.");
         
         counter = 0;
@@ -132,7 +132,7 @@ public class TestTupleGenerator
         //Insert tuples from Professor schema random generation ( 1000 )
         for (int j = 0; j < resultTest [1].length; j++) {
             
-            System.out.println ("Inserting Professor " + j);
+            //System.out.println ("Inserting Professor " + j);
 
             Professor.insert(resultTest[1][counter]);
                     
@@ -147,7 +147,7 @@ public class TestTupleGenerator
         //Insert tuples from Course schema random generation ( 2000 )
         for (int j = 0; j < resultTest [2].length; j++) {
                                 
-            System.out.println ("Inserting Course " + j);
+            //System.out.println ("Inserting Course " + j);
 
             Course.insert(resultTest[2][counter]);
                     
@@ -162,14 +162,14 @@ public class TestTupleGenerator
         //Insert tuples from Teaching schema random generation ( 50000 )
         for (int j = 0; j < resultTest [3].length; j++) {
             
-            System.out.println ("Inserting Teaching " + j);
+            //System.out.println ("Inserting Teaching " + j);
   
             Teaching.insert(resultTest[3][counter]);
                     
             counter++;
             
         } // for
-        
+        */
         System.out.println("Inserting tuples in Transcript Table.");
         
         counter = 0;
@@ -177,14 +177,13 @@ public class TestTupleGenerator
         //Insert tuples from Transcript schema random generation ( 5000 )
         for (int j = 0; j < resultTest [4].length; j++) {
             
-            System.out.println ("Inserting Transcript " + j);
+            //System.out.println ("Inserting Transcript " + j);
     
             Transcript.insert(resultTest[4][counter]);
                     
             counter++;
             
         } // for
-        
         
         //Variable decs for time recording
         long startTime;
@@ -216,6 +215,7 @@ public class TestTupleGenerator
             System.out.println("\t\t" + format.format(duration));
         }//for
         
+        /*
         System.out.println("\tProfessor point select - 1000 tuples");
         for( int i = 0; i < 50 ; i++){
             professorInt = ran.nextInt(1000);
@@ -255,7 +255,7 @@ public class TestTupleGenerator
             duration = (double)(endTime - startTime)/1000000000.0;
             System.out.println("\t\t" + format.format(duration));
         }//for
-        
+        */
         /**
          * Select - Range Query
          */
@@ -271,7 +271,7 @@ public class TestTupleGenerator
             duration = (double)(endTime - startTime)/1000000000.0;
             System.out.println("\t\t" + format.format(duration));
         }//for
-        
+        /*
         System.out.println("\tProfessor range select - 1000 tuples");
         for( int i = 0; i < 50 ; i++){
             professorInt = ran.nextInt(1000);
@@ -293,7 +293,7 @@ public class TestTupleGenerator
         }//for
                 
         System.out.println("\tTeaching range select - 50000 tuples");
-        for( int i = 0; i < 50 ; i++){
+        for( int i = 0; i < 3 ; i++){
             teachingInt = ran.nextInt(50000);
             startTime = System.nanoTime();
             Teaching.select ("crsCode > " + resultTest[3][teachingInt][0].toString());
@@ -311,7 +311,7 @@ public class TestTupleGenerator
             duration = (double)(endTime - startTime)/1000000000.0;
             System.out.println("\t\t" + format.format(duration));
         }//for
-        
+       */
          /**
          * Join Query
          */
@@ -327,34 +327,8 @@ public class TestTupleGenerator
             System.out.println("\t\t" + format.format(duration));
         }//for
         
-        
-        System.out.println("\tProfessor join with Teaching - 1000 tuples + 5000 tuples");
-        for( int i = 0; i < 50 ; i++){
-            startTime = System.nanoTime();
-            Table tempTable = Professor.join ("id == profId", Teaching);
-            endTime = System.nanoTime();
-            duration = (double)(endTime - startTime)/1000000000.0;
-            System.out.println("\t\t" + format.format(duration));
-        }//for
-        
-        
-        System.out.println("\tCourse join with Transcript - 2000 tuples + 5000 tuples");
-        for( int i = 0; i < 50 ; i++){
-            startTime = System.nanoTime();
-            Table tempTable = Course.join ("crsCode == crsCode", Transcript);
-            endTime = System.nanoTime();
-            duration = (double)(endTime - startTime)/1000000000.0;
-            System.out.println("\t\t" + format.format(duration));
-        }//for
-        
-        System.out.println("\tTeaching join with Course - 50000 tuples + 2000 tuples");
-        for( int i = 0; i < 50 ; i++){
-            startTime = System.nanoTime();
-            Table tempTable = Teaching.join ("crsCode == crsCode", Course);
-            endTime = System.nanoTime();
-            duration = (double)(endTime - startTime)/1000000000.0;
-            System.out.println("\t\t" + format.format(duration));
-        }//for
-        
+        Student.printIndex();
+        Transcript.printIndex();
+
     } // main
 } // TestTupleGenerator

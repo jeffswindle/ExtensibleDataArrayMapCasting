@@ -1,4 +1,4 @@
-package csci4370project3;
+package csci4370project4;
 
 
 /*******************************************************************************
@@ -22,8 +22,7 @@ class MovieDB
      */
     public static void main (String [] args)
     {
-        out.println ();
-
+        
         Table movie = new Table ("movie", "title year length genre studioName producerNo",
                                           "String Integer Integer String String Integer", "title year");
 

@@ -1,4 +1,4 @@
-package csci4370project3;
+package csci4370project4;
 
 /*******************************************************************************
  * @file BpTree.java
@@ -95,12 +95,58 @@ public class BpTree <K extends Comparable <K>, V>
      * @return  the set view of the map
      * @author Woong Kim
      */
+     
+    @Override
+    public boolean containsKey(Object key){
+        boolean contains = false;
+        
+        V object = find((K) key, root);
+        if(object == null){
+            contains = false;
+        }
+        else{
+            contains = true;
+        }
+        return contains;
+    
+    }
+    
+    @Override
+    public boolean containsValue(Object value){
+        boolean contains = false;
+        contains = containsValueHelper(value, this.root);
+        return contains;
+    }
+    
+    private boolean containsValueHelper(Object value, Node n){
+        boolean contains = false;
+        if(!n.isLeaf){
+            for(int i = 0; i < n.nKeys+1; i++){
+                Node currentNode = (Node)n.ref[i];
+                contains = containsValueHelper(value, currentNode);
+                if(contains == true){
+                    return contains;
+                }
+            }
+        }
+        else{
+            for(int i = 0; i < n.nKeys; i++){
+                Object currentRef = n.ref[i];
+                if(currentRef.equals(value)){
+                    contains = true;
+                    return contains;
+                }
+            }
+        }
+        return contains;
+    }
+    
     @Override
     public Set <Map.Entry <K, V>> entrySet ()
     {
         Set <Map.Entry <K, V>> result = new HashSet <> ();
        
-    	//if the root is a leaf node
+           //if the root is a leaf node
     	if(this.root.isLeaf)
     	{
     		int i = 0;
@@ -194,7 +240,7 @@ public class BpTree <K extends Comparable <K>, V>
     						if(!(holder[currentLevel]>currentNode.nKeys))
     						{
     							//otherwise assign the next K
-    							currentK = currentNode.key[toGet];
+    							currentK = currentNode.key[toGet-1];
     						}
     					}
     				//if we are not done with the node yet
@@ -237,6 +283,7 @@ public class BpTree <K extends Comparable <K>, V>
     public V put (K key, V value)
     {
         insert (key, value, root, null, 0);
+        numKeys++;
         return null;
     } // put
 
@@ -312,6 +359,7 @@ public class BpTree <K extends Comparable <K>, V>
     	if((toKey.compareTo(this.firstKey())<0) || (toKey.compareTo(this.firstKey())==0))
     	{
     		//return null, there are no values to return
+out.println("DEBUG:: BpTree: headMap: value too small");
     		return(result);
     	}
     	//if the root is a leaf node
@@ -346,6 +394,7 @@ public class BpTree <K extends Comparable <K>, V>
     			depth++;
     			currentNode = (Node) currentNode.ref[0];
     		}
+out.println("DEBUG:: BpTree: headMap: Depth is " + depth);
     		//begin at the root
     		currentNode = root;
     		//start at the root level
@@ -358,13 +407,15 @@ public class BpTree <K extends Comparable <K>, V>
     		//starting key is root's leftmost key
     		K currentK = root.key[0];
     		//continue through the tree in order, until a larger key is found
-    		while(currentK.compareTo(toKey)<0)
+    		while(currentK.compareTo(toKey)<0 || currentLevel!=depth)
     		{
+//out.println("DEBUG:: BpTree: headMap: currentLevel = " + currentLevel);
     			//if we are looking at a leaf node
     			if(currentLevel==depth)
     			{
     				//put the current node into the result tree 
     				result.put(currentNode.key[holder[currentLevel]],(V) currentNode.ref[holder[currentLevel]]);
+//out.println("DEBUG:: BpTree: headMap: inserted value");
     				//move to the next key in the node
     				holder[currentLevel]++;
     				//if we are done with the node, we must move up one and increment
@@ -642,6 +693,36 @@ public class BpTree <K extends Comparable <K>, V>
 
         out.println ("-------------------------------------------");
     } // print
+    
+    /***************************************************************************
+     * Print the B+Tree using a pre-order traveral and indenting each level.
+     * @param n      the current node to print
+     * @param level  the current level of the B+Tree
+     */
+    @SuppressWarnings("unchecked")
+    public void print ()
+    {
+        Node n = this.root;
+        int level = 0;
+        out.println ("BpTree");
+        out.println ("-------------------------------------------");
+
+        for (int j = 0; j < level; j++){
+            out.print ("\t");
+        }
+        out.print ("[ . ");
+        for (int i = 0; i < n.nKeys; i++){
+            out.print (n.key [i] + " . ");
+        }
+        out.println ("]");
+        if ( ! n.isLeaf) {
+            for (int i = 0; i <= n.nKeys; i++){
+                print ((Node) n.ref [i], level + 1);
+            }
+        } // if
+
+        out.println ("-------------------------------------------");
+    } // print
 
     /***************************************************************************
      * Recursive helper function for finding a key in B+trees.
@@ -656,7 +737,7 @@ public class BpTree <K extends Comparable <K>, V>
             K k_i = n.key [i];
             if (key.compareTo (k_i) <= 0) {
                 if (n.isLeaf) {
-                    return (key.equals (k_i)) ? (V) n.ref [i] : null;
+                    return (key.compareTo(k_i)==0) ? (V) n.ref [i] : null;
                 } else {
                     return find (key, (Node) n.ref [i]);
                 } // if
@@ -688,7 +769,7 @@ public class BpTree <K extends Comparable <K>, V>
                         wedge (key, ref, n, i);
                         haveWedged = true;
                     } else if (key.equals (k_i)) {
-                        out.println ("BpTree:insert: attempt to insert duplicate key = " + key);
+out.println ("DEBUG::BpTree:insert: attempt to insert duplicate key = " + key);
                         haveWedged = true;
                     } // if
                 }// for
@@ -825,9 +906,9 @@ public class BpTree <K extends Comparable <K>, V>
      * @param n    the current node
      * @author Nick Burlingame
      */
-    private Node split (K key, V ref, Node n, int level)
+     private Node split (K key, V ref, Node n, int level)
     {
-    	//if we're splitting a leaf node
+           //if we're splitting a leaf node
     	if(n.isLeaf)
     	{
     		//the new node can never be a leaf (by nature of split)
@@ -854,7 +935,7 @@ public class BpTree <K extends Comparable <K>, V>
     			}// if
     		}// for
     		//if the new key is larger than all the keys already in the node
-    		if(key.compareTo(n.key[n.nKeys-1])>0)
+    		if(key.compareTo(n.key[n.nKeys-1])>0 || key.compareTo(n.key[n.nKeys-1]) == 0)
     		{
     			karray.add(key);
     			varray.add(ref);
@@ -914,7 +995,7 @@ public class BpTree <K extends Comparable <K>, V>
                     }// if
             }// for
             //if the new key is larger than all the keys already in the node
-            if(key.compareTo(n.key[n.nKeys-1])>0)
+            if(key.compareTo(n.key[n.nKeys-1])>0 || key.compareTo(n.key[n.nKeys-1]) == 0)
             {
                     karray.add(toInsert.key[0]);
                     varray.add((V)toInsert.ref[0]);
@@ -955,20 +1036,33 @@ public class BpTree <K extends Comparable <K>, V>
     public static void main (String [] args)
     {
         BpTree <Integer, Integer> bpt = new BpTree <> (Integer.class, Integer.class);
-        int totKeys = 50;
+        int totKeys = 2000;
         for (int i = 1; i < totKeys; i += 2) {
             bpt.put (i, i * i);
         }
+        /*for(int i = totKeys; i > 0; i-=2)
+        {
+        	bpt.put(i, i * i);
+        }*/
+/*        Random rand = new Random();
+        for(int i = 0; i < totKeys; i++)
+        {
+        	int toInsert = rand.nextInt(10000000);
+//			bpt.print(bpt.root,0);
+out.println("About to insert " + toInsert);
+        	bpt.put(toInsert, toInsert*2);
+out.println("DEBUG:: BpTree: main: size = " + bpt.size());
+        }*/
         bpt.print (bpt.root, 0);
-        for (int i = 0; i < totKeys; i++) {
+/*        for (int i = 0; i < totKeys; i++) {
             out.println ("key = " + i + " value = " + bpt.get (i));
         } // for
-        out.println ("-------------------------------------------");
+*/		out.println ("-------------------------------------------");
         out.println ("First key is " + bpt.firstKey());
         out.println ("Last key is " + bpt.lastKey());
         out.println ("-------------------------------------------");
         out.println ("Average number of nodes accessed = " + bpt.count / (double) totKeys);
-        out.println("--------------------------------------------");
+/*		out.println("--------------------------------------------");
         out.println("Testing for entrySet: ");
         Set <Map.Entry <Integer, Integer>> mySet;
         mySet = bpt.entrySet();
@@ -980,7 +1074,7 @@ public class BpTree <K extends Comparable <K>, V>
         	Map.Entry ent = (Map.Entry<Integer, Integer>) itr.next();
         	out.println("key = " + ent.getKey() + "; value = " + ent.getValue());
         }
-        out.println("--------------------------------------------");
+*/		out.println("--------------------------------------------");
         out.println("Testing for Submap methods: ");
         out.println("Testing headMap(): ");
         out.println("When index is below min (empty tree): ");
@@ -992,7 +1086,7 @@ public class BpTree <K extends Comparable <K>, V>
         out.println("\nWhen index is between min and max keys (sub tree): ");
         BpTree <Integer, Integer> bpth3 = (BpTree<Integer, Integer>) bpt.headMap(16);
         bpth3.print (bpth3.root, 0);
-        out.println("\n\nTesting tailMap(): ");
+/*		out.println("\n\nTesting tailMap(): ");
         out.println("\nWhen index is above max (empty tree): ");
         BpTree <Integer, Integer> bptt2 = (BpTree<Integer, Integer>) bpt.tailMap(100);
         bptt2.print (bptt2.root, 0);
@@ -1012,6 +1106,7 @@ public class BpTree <K extends Comparable <K>, V>
         out.println("\nWhen index1 is above min index2 is below max (true sub tree): ");
         BpTree <Integer, Integer> bpts3 = (BpTree<Integer, Integer>) bpt.subMap(4,24);
         bpts3.print (bpts3.root, 0);
-    } // main
+*/	} // main
 
 } // BpTree class
+

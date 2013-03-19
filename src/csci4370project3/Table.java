@@ -1,4 +1,4 @@
-package csci4370project3;
+package csci4370project4;
 
 
 /*******************************************************************************
@@ -58,7 +58,9 @@ public class Table
 
     /** Index into tuples (maps key to tuple).
      */
-    private final Map <KeyType, Comparable []> index;
+    //private final Map <KeyType, Comparable []> index;
+    //private final LinHash <Integer, Object> index;
+    private final BpTree< KeyType, Comparable[] > index;   
 
     /***************************************************************************
      * Construct an empty table from the meta-data specifications.
@@ -75,17 +77,10 @@ public class Table
         key       = _key;
         //tuples    = new ArrayList <> ();                // also try FileList, see below
         tuples    = new FileList (this, tupleSize ());
-        
-        //Index with simple TreeMap
-        //index     = new TreeMap <> ();                  // also try BPTreeMap, LinHash or ExtHash
-        
-        
-        //Index with BpTree
-        KeyType keyType = new KeyType(key);
-        Class <?> myClass2 = tuples.getClass();
-        index = new BpTree(keyType.getClass(), myClass2);
+        //index     = new TreeMap <> ();
+        index       = new BpTree<>(KeyType.class,Comparable[].class);
+        //index     = new LinHash<>(Integer.class,Object.class,11);//new TreeMap <> ();
     } // Table
-
 
     /***************************************************************************
      * Construct an empty table from the raw string specifications.
@@ -96,7 +91,7 @@ public class Table
     public Table (String name, String attributes, String domains, String _key)
     {
         this (name, attributes.split (" "), findClass (domains.split (" ")), _key.split(" "));
-        out.println ("DDL> create table " + name + " (" + attributes + ")");
+        //out.println ("DDL> create table " + name + " (" + attributes + ")");
     } // Table
 
     /***************************************************************************
@@ -119,7 +114,7 @@ public class Table
      */
     public Table project (String attributeList)
     {
-        out.println ("RA> " + name + ".project (" + attributeList + ")");
+        //out.println ("RA> " + name + ".project (" + attributeList + ")");
 
         String [] pAttribute = attributeList.split (" ");
         int []    colPos     = match (pAttribute);
@@ -193,21 +188,112 @@ public class Table
      */
     public Table select (String condition)
     {
-        out.println ("RA> " + name + ".select (" + condition + ")");
+        //out.println ("RA> " + name + ".select (" + condition + ")");
 
         String [] postfix = infix2postfix (condition);
         Table     result  = new Table (name + count++, attribute, domain, key);
-        boolean search = false;
+
+        ///////////////////////For Tree/////////////////////////////////
+        //Add Indexing for one integer key tables
+        //TODO:Add multi-key support and non-Integer key support
+       /* 
+        if( key[0].equals(postfix[0]) ){        
+            
+            //Get tuples that match the using index instead of evalTup
+            Comparable[] tempC = new Comparable[1];
+            tempC[0] = Integer.parseInt(postfix[1]);
+            KeyType keyT = new KeyType(tempC);
+            if( postfix[2].equals("==")){       
+                if ( index.containsKey(keyT) )
+                {
+                    Comparable[] compTup = (Comparable[])index.get(keyT);
+                    result.insert(compTup);
+                }//if
+            
+                return result;
+            }
+            if( postfix[2].equals(">")){       
+                Set<KeyType> tempSet = index.keySet();
+                Iterator<KeyType> tempInterator = tempSet.iterator();
+                while( tempInterator.hasNext() ){
+                    KeyType keyT2 = tempInterator.next();
+                    if( keyT2.compareTo(keyT) > 0){
+                        Comparable[] compTup = (Comparable[])index.get(keyT2);
+                        result.insert(compTup);
+                    }
+                }
+
+                return result;
+            }
+        }
+        */
+        //////////////////////////////////////////////////////////////////////
         
-        for(int i=0;i<postfix.length;i++){
-            Comparable[] temp = new Comparable[1];
-            temp[0] = postfix[i];
-            if(index.containsValue(temp))
-            {
-                search = true;
+        ////////////////////////////For Lin Hash//////////////////////////////
+        /*
+        if( key[0].equals(postfix[0]) ){        
+            
+            //Get tuples that match the using index instead of evalTup
+            if( postfix[2].equals("==")){   
+                
+                if ( index.get(Integer.parseInt(postfix[1]))!=null )
+                {                 
+                    Comparable[] compTup = (Comparable[])index.get(Integer.parseInt(postfix[1]));
+                    result.insert(compTup);    
+                }//if
+            
+                return result;
+            }
+            if( postfix[2].equals(">")){       
+                Set<Map.Entry<Integer,Object>> tempSet;
+                tempSet = index.entrySet();
+                Iterator<Map.Entry<Integer,Object>> tempInterator = tempSet.iterator();
+                while( tempInterator.hasNext() ){
+                    if( tempInterator.next().getKey() > Integer.parseInt(postfix[1]) ){
+                        Comparable[] compTup = (Comparable[])index.get(Integer.parseInt(postfix[1]));
+                        result.insert(compTup);
+                    }
+                }
+
+                return result;
+            }
+        }
+        */
+        //////////////////////////////////////////////////////////////////////
+        
+        ///////////////////////For bpTree/////////////////////////////////
+        
+        if( key[0].equals(postfix[0]) ){        
+            
+            //Get tuples that match the using index instead of evalTup
+            Comparable[] tempC = new Comparable[1];
+            tempC[0] = Integer.parseInt(postfix[1]);
+            KeyType keyT = new KeyType(tempC);
+            if( postfix[2].equals("==")){       
+                if ( index.containsKey(keyT) )
+                {
+                    Comparable[] compTup = (Comparable[])index.get(keyT);
+                    result.insert(compTup);
+                }//if
+            
+                return result;
+            }
+            if( postfix[2].equals(">")){  
+                Set tempSet = index.entrySet();
+                Iterator tempIterator = tempSet.iterator();
+                while( tempIterator.hasNext() ){
+                    Map.Entry mapE =(Map.Entry)tempIterator.next();
+                    if( keyT.compareTo((KeyType)mapE.getKey()) < 0){
+                        result.insert((Comparable[])mapE.getValue());
+                    }                 
+                }
+
+                return result;
             }
         }
         
+        //////////////////////////////////////////////////////////////////////
+
         //Get tuples that match the conditions
         for (Comparable [] tup : tuples) {
             if (evalTup (postfix, tup))
@@ -229,7 +315,7 @@ public class Table
     public Table union (Table table2)
     {
         
-        out.println ("RA> " + name + ".union (" + table2.name + ")");
+        //out.println ("RA> " + name + ".union (" + table2.name + ")");
 	//creates the result table
         Table result = new Table (name + count++, attribute, domain, key);
         //if the two tables are incompatible, prints out the error statement
@@ -272,7 +358,7 @@ public class Table
      */
     public Table minus (Table table2)
     {
-        out.println ("RA> " + name + ".minus (" + table2.name + ")");
+        //out.println ("RA> " + name + ".minus (" + table2.name + ")");
         //Ensure the tables are compatible, otherwise return a copy of table1
         if(!(this.compatible(table2)))
         {
@@ -322,7 +408,7 @@ public class Table
      */
     public Table join (String condition, Table table2)
     {
-        out.println ("RA> " + name + ".join (" + condition + ", " + table2.name + ")");
+        //out.println ("RA> " + name + ".join (" + condition + ", " + table2.name + ")");
 
         Table emptyTable = new Table(name + count++, new String[0], new Class[0], key);
         //first check the condition input to make sure it is valid
@@ -440,7 +526,6 @@ public class Table
             fKey[0] = newTup[firstValuePos];
             //now find the matching tuple in the second table
             int tup2Counter = -1;
-            int scout = 0;
             int[] pos = new int[1];
             pos[0] = secondValuePos;
             Comparable[] reference;
@@ -453,12 +538,14 @@ public class Table
 //            		Comparable[] currentTup = table2.tuples.get(j);     	//
 //           		if(fKey[0].compareTo(currentTup[secondValuePos])==0)	//
 //            		{						    	//
-//            			scout = currentTup.length;		    	//
+//            			int scout = currentTup.length;		    	//
 //            		}							//
 //           	}								//
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
-            	reference = table2.index.get(new KeyType(fKey));
+
+                //reference = table2.index.get(new KeyType(fKey));
+            	reference = (Comparable[])table2.index.get(new KeyType(fKey));
             }catch(java.lang.ClassCastException e)
             {
             	out.println("Sorry, join conditions invalid: attribute 2 is not primary key ");
@@ -515,14 +602,15 @@ public class Table
      */
     public boolean insert (Comparable [] tup)
     {
-        out.println ("DML> insert into " + name + " values ( " + Arrays.toString (tup) + " )");
+        //out.println ("DML> insert into " + name + " values ( " + Arrays.toString (tup) + " )");
 
         if (typeCheck (tup, domain)) {
             tuples.add (tup);
             Comparable [] keyVal = new Comparable [key.length];
             int []        cols   = match (key);
             for (int j = 0; j < keyVal.length; j++) keyVal [j] = tup [cols [j]];
-            index.put (new KeyType (keyVal), tup);
+            //index.put ((Integer)keyVal[0], tup);//For linear hash
+            index.put (new KeyType (keyVal), tup);//For TreeMap and B+Tree
             return true;
         } else {
             return false;
@@ -1186,6 +1274,23 @@ public class Table
 
         return tup;
     } // extractTup
+    
+        public void printIndex(){
+        //For TreeMap
+        /*
+        Set<Map.Entry<KeyType,Comparable[]>> tempSet = index.entrySet();
+        Iterator<Map.Entry<KeyType,Comparable[]>> it = tempSet.iterator();
+        while( it.hasNext() ){
+            Map.Entry<KeyType,Comparable[]> entry = it.next();
+            System.out.print(entry.getKey() + "\t");
+            for( int i = 0 ; i < entry.getValue().length ; i++ ){
+                System.out.print(entry.getValue()[i] + "\t");         
+            } 
+            System.out.println();
+        }
+        */
+        index.print();//For Linear Hash and B+Tree
+    }
 
 } // Table class
 
